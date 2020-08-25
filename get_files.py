@@ -29,9 +29,9 @@ removed_channels = removed_channels.split(",")
 total_time = (stop_time_usec - start_time_usec)//1000000
 eeg_file_size = round((total_time/60)*(48962/1024**2),4)
 func_file_size = eeg_file_size/2
-answer = input(f"Duration requested = {convertSeconds(total_time)}. Estimated space required = {eeg_file_size} GB + {func_file_size} GB = {eeg_file_size + func_file_size} GB.\nProceed? (y/n) ")
+answer = input(f"Duration requested = {convertSeconds(total_time)}. Estimated space required = {eeg_file_size} GB + {func_file_size} GB = {round(eeg_file_size + func_file_size,4)} GB.\nProceed? (y/n) ")
 
-if answer == "y":
+if answer == "y" or answer == 'Y':
     output_directory = "patientData"
     if not os.path.exists(f"{output_directory}"):
         os.makedirs(f"{output_directory}")
