@@ -32,19 +32,17 @@ func_file_size = eeg_file_size/2
 answer = input(f"Duration requested = {convertSeconds(total_time)}. Estimated space required = {eeg_file_size} GB + {func_file_size} GB = {round(eeg_file_size + func_file_size,4)} GB.\nProceed? (y/n) ")
 
 if answer == "y" or answer == 'Y':
-    output_directory = "patientData"
-    if not os.path.exists(f"{output_directory}"):
-        os.makedirs(f"{output_directory}")
-    if not os.path.exists(f"{output_directory}/{rid}"):
-        os.makedirs(f"{output_directory}/{rid}")
-        os.makedirs(f"{output_directory}/{rid}/eeg")
-    outputfile = output_directory + f"/{rid}/eeg/sub-{rid}_{iEEG_filename}_{start_time_usec}_{stop_time_usec}_EEG.pickle"
+    output_folder = "patientData"
+    parent_directory = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
+    if not os.path.exists(os.path.join(parent_directory,output_folder,rid)):
+        os.makedirs(os.path.join(parent_directory,output_folder,rid,'eeg'))
+    outputfile = os.path.join(parent_directory,output_folder,rid,'eeg',f"sub-{rid}_{iEEG_filename}_{start_time_usec}_{stop_time_usec}_EEG.pickle")
     get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
 
     start = time.time()
 
     func_inputfile = outputfile
-    func_outputfile = output_directory + f"/{rid}/sub-{rid}_{iEEG_filename}_{start_time_usec}_{stop_time_usec}_functionalConnectivity.pickle"
+    func_outputfile = os.path.join(parent_directory,output_folder,rid,f"sub-{rid}_{iEEG_filename}_{start_time_usec}_{stop_time_usec}_functionalConnectivity.pickle")
     get_Functional_connectivity(func_inputfile,func_outputfile)
 
     end = time.time()
