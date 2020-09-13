@@ -17,7 +17,7 @@ def convertSeconds(time):
     if hours < 10:
         hours = "0" + str(hours)
     c = ":"
-    return c.join([hours,minutes,seconds])
+    return ":".join(str(n) for n in [hours,minutes,seconds])
 
 # input parameters
 username = input('IEEG.org username: ')
