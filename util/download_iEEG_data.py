@@ -44,6 +44,8 @@ python3.6 -c 'import get_iEEG_data; get_iEEG_data.get_iEEG_data("arevell", "pass
 #How to extract pickled files
 with open(outputfile, 'rb') as f: data, fs = pickle.load(f)
 """
+import sys
+sys.path.append('../../ieegpy/ieeg')
 from ieeg.auth import Session
 import pandas as pd
 import pickle
