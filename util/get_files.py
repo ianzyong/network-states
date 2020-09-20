@@ -16,7 +16,6 @@ def convertSeconds(time):
         minutes = "0" + str(minutes)
     if hours < 10:
         hours = "0" + str(hours)
-    c = ":"
     return ":".join(str(n) for n in [hours,minutes,seconds])
 
 # input parameters
@@ -37,7 +36,7 @@ answer = input("Duration requested = {}. Estimated space required = {} GB + {} G
 
 # download eeg data and calculate adjacency matrices
 if answer == 'y' or answer == 'Y':
-    parent_directory = os.path.join('gdrive','public','DATA','Human_Data','BIDS_processed')
+    parent_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data')
     patient_directory = os.path.join(parent_directory,"sub-{}".format(rid))
     eeg_directory = os.path.join(patient_directory,'eeg')
     functional_directory = os.path.join(patient_directory,'connectivity_matrices','functional','eeg')
