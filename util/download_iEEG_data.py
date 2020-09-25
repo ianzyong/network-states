@@ -82,7 +82,7 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
     df = pd.DataFrame(data, columns=ds.ch_labels)
     df = pd.DataFrame.drop(df, ignore_electrodes, axis=1)
     print("Saving to: {0}".format(outputfile))
-    with open(outputfile, 'wb') as f: pickle.dump([df, fs], f)
+    with open(outputfile, 'wb') as f: pickle.dump([df, fs], f, protocol=4)
     print("...done\n")
 
 
