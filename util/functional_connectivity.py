@@ -44,12 +44,12 @@ get_Functional_connectivity(inputfile,outputfile)
 from echobase import broadband_conn, multiband_conn
 from multiprocessing import Pool
 import multiprocessing as mp
+import functools
 import numpy as np
 import pickle
 import pandas as pd
 
 def get_Functional_connectivity(inputfile,outputfile):
-    print(__name__)
     print("\nCalculating Functional Connectivity:")
     print("inputfile: {0}".format(inputfile))
     print("outputfile: {0}".format(outputfile))
@@ -73,11 +73,14 @@ def get_Functional_connectivity(inputfile,outputfile):
 
     if __name__ == 'functional_connectivity':
         print('begin multiprocessing')
-        print('num cores = ' + str(mp.cpu_count()))
         mp.set_start_method('spawn')
         num_workers = mp.cpu_count()
+        print('num cores = ' + str(num_workers))
         with Pool(processes=num_workers) as pool:
+            broad = pool.starmap(broadband_conn,windows)
+            print('broadband calculations complete')
             processed_bands = pool.starmap(multiband_conn,windows)
+            print('other band calculations complete')
 
     for t in range(0,totalSecs):
         alphatheta[:,:,t] = processed_bands[t][0]
@@ -85,11 +88,11 @@ def get_Functional_connectivity(inputfile,outputfile):
         highgamma[:,:,t] = processed_bands[t][3]
         lowgamma[:,:,t] = processed_bands[t][2]
         #printProgressBar(t+1, totalSecs, prefix = "Progress:", suffix = "done. Calculating {0} of {1} functional connectivity matrices".format(t+1,totalSecs ) )
-        startInd = int(t*fs)
-        endInd = int(((t+1)*fs) - 1) #calculating over 1 second windows
-        window = data_array[startInd:endInd,:]
-        broad = broadband_conn(window,int(fs),avgref=True)
-        broadband[:,:,t] = broad
+        #startInd = int(t*fs)
+        #endInd = int(((t+1)*fs) - 1) #calculating over 1 second windows
+        #window = data_array[startInd:endInd,:]
+        #broad = broadband_conn(window,int(fs),avgref=True)
+        broadband[:,:,t] = broad[t]
         
     print("Saving to: {0}".format(outputfile))
     electrode_row_and_column_names = data.columns.values
