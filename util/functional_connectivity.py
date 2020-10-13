@@ -42,11 +42,14 @@ get_Functional_connectivity(inputfile,outputfile)
 
 """
 from echobase import broadband_conn, multiband_conn
+from multiprocessing import Pool
+import multiprocessing as mp
 import numpy as np
 import pickle
 import pandas as pd
 
 def get_Functional_connectivity(inputfile,outputfile):
+    print(__name__)
     print("\nCalculating Functional Connectivity:")
     print("inputfile: {0}".format(inputfile))
     print("outputfile: {0}".format(outputfile))
@@ -60,18 +63,34 @@ def get_Functional_connectivity(inputfile,outputfile):
     broadband = np.zeros((np.size(data_array,1),np.size(data_array,1),totalSecs))
     highgamma = np.zeros((np.size(data_array,1),np.size(data_array,1),totalSecs))
     lowgamma = np.zeros((np.size(data_array,1),np.size(data_array,1),totalSecs))
+    
+    windows = []
     for t in range(0,totalSecs):
-        printProgressBar(t+1, totalSecs, prefix = "Progress:", suffix = "done. Calculating {0} of {1} functional connectivity matrices".format(t+1,totalSecs ) )
+        #printProgressBar(t+1, totalSecs, prefix = "Progress:", suffix = "done. Calculating {0} of {1} functional connectivity matrices".format(t+1,totalSecs ) )
+        startInd = int(t*fs)
+        endInd = int(((t+1)*fs) - 1) #calculating over 1 second windows
+        windows.append((data_array[startInd:endInd,:],int(fs)))
+
+    if __name__ == 'functional_connectivity':
+        print('begin multiprocessing')
+        print('num cores = ' + str(mp.cpu_count()))
+        mp.set_start_method('spawn')
+        num_workers = mp.cpu_count()
+        with Pool(processes=num_workers) as pool:
+            processed_bands = pool.starmap(multiband_conn,windows)
+
+    for t in range(0,totalSecs):
+        alphatheta[:,:,t] = processed_bands[t][0]
+        beta[:,:,t] = processed_bands[t][1]
+        highgamma[:,:,t] = processed_bands[t][3]
+        lowgamma[:,:,t] = processed_bands[t][2]
+        #printProgressBar(t+1, totalSecs, prefix = "Progress:", suffix = "done. Calculating {0} of {1} functional connectivity matrices".format(t+1,totalSecs ) )
         startInd = int(t*fs)
         endInd = int(((t+1)*fs) - 1) #calculating over 1 second windows
         window = data_array[startInd:endInd,:]
         broad = broadband_conn(window,int(fs),avgref=True)
-        adj_alphatheta, adj_beta, adj_lowgamma, adj_highgamma = multiband_conn(window,int(fs),avgref=True)
-        alphatheta[:,:,t] = adj_alphatheta
-        beta[:,:,t] = adj_beta
         broadband[:,:,t] = broad
-        highgamma[:,:,t] = adj_highgamma
-        lowgamma[:,:,t] = adj_lowgamma
+        
     print("Saving to: {0}".format(outputfile))
     electrode_row_and_column_names = data.columns.values
     order_of_matrices_in_pickle_file = pd.DataFrame(["broadband", "alphatheta", "beta", "lowgamma" , "highgamma" ], columns=["Order of matrices in pickle file"])
