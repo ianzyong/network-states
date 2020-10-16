@@ -13,6 +13,7 @@ from os.path import isfile, join
 import pathlib
 
 # script which takes all pickle files in the specified directories and outputs the median connectivity matrices
+# also outputs a matrix of variances
 # also saves a csv file containing the electrodes for each patient
 
 # CONSTANTS:
@@ -40,13 +41,17 @@ for k in range(len(paths)): # for each directory and id pair
     print(f"(# electrodes, # electrodes, time): {functionalArrays[0][0].shape}")
     functional = np.concatenate(functionalArrays, axis=-1) # combine arrays into one array along the time (last) axis
     medianConnectivityMatrix = np.median(functional, axis=-1) # take median values element-wise along the time (last) axis
-    print(f"Result:\n {medianConnectivityMatrix}") # print result to the console
+    varianceConnectivityMatrix = np.var(functional, axis=-1, ddof=1) # take sample variance element-wise along the time (last) axis
+    print(f"Median result:\n {medianConnectivityMatrix}") # print result to the console
+    print(f"Variance result:\n {varianceConnectivityMatrix}") # print result to the console
     print(f"Shape: {medianConnectivityMatrix.shape}")
-    outputFileName = f"{ids[k]}_median_conn_matrix"
-    np.save(f"{outputPath}/{outputFileName}.npy", medianConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
+    medianOutputFileName = f"{ids[k]}_median_conn_matrix"
+    varianceOutputFileName = f"{ids[k]}_variance_conn_matrix"
+    np.save(f"{outputPath}/{medianOutputFileName}.npy", medianConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
+    np.save(f"{outputPath}/{varianceOutputFileName}.npy", varianceConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
     counter += 1
-    print(f"Output saved to directory as {outputFileName}.npy")
+    print(f"Output saved to directory as {medianOutputFileName}.npy, {varianceOutputFileName}.npy")
     np.savetxt(f"{outputPath}/{ids[k]}_electrodes.csv", electrodes[np.newaxis], delimiter=",", fmt = "%s") # save the electrodes as a csv file to the output directory
     print(f"Electrodes saved to directory as {ids[k]}_electrodes.csv")
-print(f"{len(paths)} matrix file(s) generated and {counter} matrix file(s) saved.")
+print(f"{len(paths)*2} matrix file(s) generated and {counter*2} matrix file(s) saved.")
 print("Done.")
