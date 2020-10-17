@@ -84,9 +84,9 @@ def get_Functional_connectivity(inputfile,outputfile):
                 print('other band calculations complete')
         except:
             print('error encountered, continuing with multiprocessing disabled...')
-            broad = [broadband_conn(x[1],x[2]) for x in windows]
+            broad = [broadband_conn(x[0],x[1]) for x in windows]
             print('broadband calculations complete')
-            processed_bands = [multiband_conn(x[1],x[2]) for x in windows]
+            processed_bands = [multiband_conn(x[0],x[1]) for x in windows]
             print('other band calculations complete')
 
     for t in range(0,totalSecs):
