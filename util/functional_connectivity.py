@@ -76,10 +76,17 @@ def get_Functional_connectivity(inputfile,outputfile):
         mp.set_start_method('spawn')
         num_workers = mp.cpu_count()
         print('num cores = ' + str(num_workers))
-        with Pool(processes=num_workers) as pool:
-            broad = pool.starmap(broadband_conn,windows)
+        try:
+            with Pool(processes=num_workers) as pool:
+                broad = pool.starmap(broadband_conn,windows)
+                print('broadband calculations complete')
+                processed_bands = pool.starmap(multiband_conn,windows)
+                print('other band calculations complete')
+        except:
+            print('error encountered, continuing with multiprocessing disabled...')
+            broad = map(broadband_conn,windows)
             print('broadband calculations complete')
-            processed_bands = pool.starmap(multiband_conn,windows)
+            processed_bands = map(multiband_conn,windows)
             print('other band calculations complete')
 
     for t in range(0,totalSecs):
