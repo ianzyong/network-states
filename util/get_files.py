@@ -20,22 +20,20 @@ def convertSeconds(time):
     return ":".join(str(n) for n in [hours,minutes,seconds])
 
 if __name__ == '__main__':
-    # get command line arguments
-    args = str(sys.argv)
     # input parameters
     username = input('IEEG.org username: ')
     password = input('IEEG.org password: ')
     # initilize list to hold tuples corresponding to each patient
     patient_list = []
     # if there are arguments
-    if len(args) > 0:
+    if len(sys.argv) > 1:
         # get the filename of the list of patients to run
-        patient_metadata = args[0]
+        patient_metadata = sys.argv[1]
         with open(patient_metadata) as f:
             lines = [line.rstrip() for line in f]
             for k in range(0,len(lines)-4,5):
                 # add patient tuple to the list
-                patient_list.append(tuple([lines[k,k+4],lines[k+4].split(",")))
+                patient_list.append(tuple(lines[k:k+5]))
                 
     else: # if no arguments are supplied, run just one patient
         iEEG_filename = input('Input iEEG_filename: ')
@@ -46,14 +44,18 @@ if __name__ == '__main__':
         removed_channels = removed_channels.split(",")
         patient_list.append(tuple([iEEG_filename,rid,start_time_usec,stop_time_usec,removed_channels]))
 
+    total_size = 0
     for patient in patient_list:
-        start_time_usec = patient[3]
-        stop_time_usec = patient[4]
+        start_time_usec = int(patient[2])
+        stop_time_usec = int(patient[3])
         # calculate duration requested an estimate the space required on disk for the eeg and functional connectivity data
         total_time = (stop_time_usec - start_time_usec)//1000000
         eeg_file_size = round((total_time/60)*(48962/1024**2),4)
         func_file_size = eeg_file_size/2
+        print("{}:".format(patient[1]))
         print("Duration requested = {}. Estimated space required = {} GB + {} GB = {} GB.".format(convertSeconds(total_time),eeg_file_size,func_file_size,round(eeg_file_size + func_file_size,4)))
+        total_size = total_size + eeg_file_size + func_file_size
+    print("Total estimated space required = {} GB.".format(round(total_size,4)))
     answer = input("Proceed? (y/n) ")
 
     # download eeg data and calculate adjacency matrices
@@ -65,7 +67,7 @@ if __name__ == '__main__':
             rid = patient[1]
             start_time_usec = patient[2]
             stop_time_usec = patient[3]
-            removed_channels = patient[4]
+            removed_channels = patient[4].split(",")
             parent_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data')
             patient_directory = os.path.join(parent_directory,"sub-{}".format(rid))
             eeg_directory = os.path.join(patient_directory,'eeg')
