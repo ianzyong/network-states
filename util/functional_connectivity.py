@@ -87,10 +87,15 @@ def get_Functional_connectivity(inputfile,outputfile):
                 print('other band calculations complete')
         except:
             print('error encountered, continuing with multiprocessing disabled...')
-            broad = [broadband_conn(x[0],x[1]) for x in windows]
-            print('broadband calculations complete')
-            processed_bands = [multiband_conn(x[0],x[1]) for x in windows]
-            print('other band calculations complete')
+            try:
+                broad = [broadband_conn(x[0],x[1]) for x in windows]
+                print('broadband calculations complete')
+                processed_bands = [multiband_conn(x[0],x[1]) for x in windows]
+                print('other band calculations complete')
+            except ValueError:
+                print('Encountered ValueError: input data most likely contains NaNs. Skipping...')
+                # calculations did not finish
+                return True
 
     for t in range(0,totalSecs):
         alphatheta[:,:,t] = processed_bands[t][0]
@@ -110,6 +115,7 @@ def get_Functional_connectivity(inputfile,outputfile):
     with open(outputfile, 'wb') as f: pickle.dump([broadband, alphatheta, beta, lowgamma, highgamma, electrode_row_and_column_names, order_of_matrices_in_pickle_file], f)
     #np.savez(outputfile, broadband=broadband, alphatheta=alphatheta, beta=beta, lowgamma=lowgamma, highgamma=highgamma)
     print("...done\n\n")
+    return False
 
 def get_Functional_connectivity_windowed(inputfile,outputfile):
     print("\nCalculating Functional Connectivity:")

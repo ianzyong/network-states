@@ -61,6 +61,7 @@ if __name__ == '__main__':
 
     # download eeg data and calculate adjacency matrices
     if answer == 'y' or answer == 'Y':
+        process_count = 0
         # start timer
         total_start = time.time()
         for patient in patient_list:
@@ -73,25 +74,36 @@ if __name__ == '__main__':
             patient_directory = os.path.join(parent_directory,"sub-{}".format(rid))
             eeg_directory = os.path.join(patient_directory,'eeg')
             functional_directory = os.path.join(patient_directory,'connectivity_matrices','functional','eeg')
+
             # create necessary directories if they do not exist
             if not os.path.exists(patient_directory):
                 os.makedirs(eeg_directory)
                 os.makedirs(functional_directory)
             outputfile = os.path.join(eeg_directory,"sub-{}_{}_{}_{}_EEG.pickle".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
-            get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
-
-            # start timer
-            start = time.time()
-
             func_inputfile = outputfile
             func_outputfile = os.path.join(functional_directory,"sub-{}_{}_{}_{}_functionalConnectivity.pickle".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
-            get_Functional_connectivity(func_inputfile,func_outputfile)
+            
+            # download data and calculate connectivity matrices if the file does not already exist
+            if not os.path.isfile(func_outputfile):
+                get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
 
-            # stop timer
-            end = time.time()
+                # start timer
+                start = time.time()
 
-            # report time elapsed for functional connectivity calculation
-            print("Time elapsed = {}".format(convertSeconds(int(end - start))))
+                error_encountered = get_Functional_connectivity(func_inputfile,func_outputfile)
+
+                # stop timer
+                end = time.time()
+
+                if not error_encountered:
+                    # report time elapsed for functional connectivity calculation
+                    print("Time elapsed = {}".format(convertSeconds(int(end - start))))
+
+                    process_count = process_count + 1
+                    
+            else:
+                print("{} exists, skipping...".format(func_outputfile))
+
         total_end = time.time()
-        print("{} patient(s) processed in {}.".format(len(patient_list),convertSeconds(int(total_end - total_start))))
+        print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
         print("Done.")
