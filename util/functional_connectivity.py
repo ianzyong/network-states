@@ -73,7 +73,10 @@ def get_Functional_connectivity(inputfile,outputfile):
 
     if __name__ == 'functional_connectivity':
         print('begin multiprocessing')
-        mp.set_start_method('spawn')
+        try:
+            mp.set_start_method('spawn')
+        except RuntimeError:
+            pass
         num_workers = mp.cpu_count()
         print('num cores = ' + str(num_workers))
         try:

@@ -56,6 +56,7 @@ if __name__ == '__main__':
         print("Duration requested = {}. Estimated space required = {} GB + {} GB = {} GB.".format(convertSeconds(total_time),eeg_file_size,func_file_size,round(eeg_file_size + func_file_size,4)))
         total_size = total_size + eeg_file_size + func_file_size
     print("Total estimated space required = {} GB.".format(round(total_size,4)))
+    print("Total number of intervals requested = {}".format(len(patient_list)))
     answer = input("Proceed? (y/n) ")
 
     # download eeg data and calculate adjacency matrices
