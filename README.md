@@ -9,16 +9,16 @@ A research project centered around the analysis of distinct network states in ep
 2. Pull the echobase image from Docker Hub: `singularity pull docker://arevell/echobase:0.0.2`
 3. Start the echobase instance and name it: `singularity instance start -u --bind /gdrive/public/ [path to echobase image] [instance name]`
 4. Start a shell from the instance: `singularity shell instance://[instance name]`  
-5. Navigate to the script directory. On Borel, this is `cd /gdrive/public/USERS/ianzyong/network-states/util/`
+5. Navigate to the script directory. On Borel, this is `cd /gdrive/public/USERS/[user folder]/network-states/util/`
 6. Run the script and follow the prompts to download iEEG data and calculate functional connectivity: `python3 get_files.py`
 
 ### Steps for calculating functional connectivity over multiple intervals
 `get_files.py` also allows you to calculate multiple intervals consecutively. To do this, you must supply a `.txt` file formatted in the following way for each entry:
 ```
 [filename on iEEG.org]
-[RID]
-[start time in ms]
-[end time in ms]
+[RID] (can be anything identifiable - for directory naming purposes)
+[start time in us]
+[end time in us]
 [electrodes to ignore]
 ```
 Here is an example of a valid `.txt` that can be used to calculate an hour of functional connectivity matrices from HUP157 and then from HUP160:
