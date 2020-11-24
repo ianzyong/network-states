@@ -37,3 +37,11 @@ C3,CZ,ECG1,ECG2,F3,F7,FZ,O1,P3,PZ,RB1,RC8,RK1,T3,T5
 If the intervals you want to calculate are from a single patient, evenly spaced, and of the same duration, then you can use `generate_intervals.py` to automatically generate a usable `.txt` file.
 
 Once you have a valid `.txt`, follow steps 1-5 above and then run `python3 get_files.py [path to .txt file]` to calculate all intervals consecutively.
+
+### Troubleshooting
+If an error prevents you from running `get_files.py`, you may need to install the required modules. Run the following commands in Borel and then try again:
+```
+cd /gdrive/public/USERS/ianzyong/ieegpy
+python setup.py build
+python setup.py install --user
+```
