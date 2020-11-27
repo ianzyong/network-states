@@ -68,7 +68,7 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
     #if duration is greater than ~10 minutes, then break up the API request to iEEG.org. 
     #The server blocks large requests, so the below code breaks up the request and 
     #concatenates the data
-    server_limit_minutes = 10
+    server_limit_minutes = 5
     if duration < server_limit_minutes*60*1e6:
         data = ds.get_data(start_time_usec, duration, channels)
     if duration >= server_limit_minutes*60*1e6:
