@@ -93,7 +93,7 @@ def get_Functional_connectivity(inputfile,outputfile):
                 processed_bands = [multiband_conn(x[0],x[1]) for x in windows]
                 print('other band calculations complete')
             except ValueError:
-                print('Encountered ValueError: input data most likely contains NaNs. Skipping...')
+                print('Encountered ValueError: input data most likely contains NaNs. Skipping...\n')
                 # calculations did not finish
                 return True
 
