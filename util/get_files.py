@@ -41,7 +41,7 @@ if __name__ == '__main__':
         start_time_usec = int(input('Input start_time_usec: '))
         stop_time_usec = int(input('Input stop_time_usec: '))
         removed_channels = input('Input removed_channels: ')
-        removed_channels = removed_channels.split(",")
+        #removed_channels = removed_channels.split(",")
         patient_list.append(tuple([iEEG_filename,rid,start_time_usec,stop_time_usec,removed_channels]))
 
     total_size = 0
