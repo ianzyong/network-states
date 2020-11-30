@@ -56,5 +56,7 @@ for k in range(len(paths)): # for each directory and id pair
         print(f"Electrodes saved to directory as {ids[k]}_electrodes.csv")
     except FileNotFoundError:
         print("FileNotFoundError: The provided path does not exist. Skipping...")
+    except IndexError:
+        print("IndexError: The provided file(s) could not be read. Skipping...")
 print(f"{len(paths)*2} matrix file(s) generated and {counter*2} matrix file(s) saved.")
 print("Done.")
