@@ -33,25 +33,28 @@ while (len(ids) != len(paths)): # continue prompting if the number of ids does n
 counter = 0
 for k in range(len(paths)): # for each directory and id pair
     print(f"\nID: {ids[k]} ({k+1} of {len(ids)})") # current id
-    files = os.listdir(paths[k]) # get pickle files in directory
-    print(f"File(s): {files}") # print files in directory
-    pickleData = [pd.read_pickle(paths[k] + "/" + x) for x in files] # unpickle functional connectivity data
-    functionalArrays = [f[0:5] for f in pickleData] # take all of the numeric data
-    electrodes = pickleData[0][5] # get list of electrodes from the first pickle file
-    print(f"(# electrodes, # electrodes, time): {functionalArrays[0][0].shape}")
-    functional = np.concatenate(functionalArrays, axis=-1) # combine arrays into one array along the time (last) axis
-    medianConnectivityMatrix = np.median(functional, axis=-1) # take median values element-wise along the time (last) axis
-    varianceConnectivityMatrix = np.var(functional, axis=-1, ddof=1) # take sample variance element-wise along the time (last) axis
-    print(f"Median result:\n {medianConnectivityMatrix}") # print result to the console
-    print(f"Variance result:\n {varianceConnectivityMatrix}") # print result to the console
-    print(f"Shape: {medianConnectivityMatrix.shape}")
-    medianOutputFileName = f"{ids[k]}_median_conn_matrix"
-    varianceOutputFileName = f"{ids[k]}_variance_conn_matrix"
-    np.save(f"{outputPath}/{medianOutputFileName}.npy", medianConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
-    np.save(f"{outputPath}/{varianceOutputFileName}.npy", varianceConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
-    counter += 1
-    print(f"Output saved to directory as {medianOutputFileName}.npy, {varianceOutputFileName}.npy")
-    np.savetxt(f"{outputPath}/{ids[k]}_electrodes.csv", electrodes[np.newaxis], delimiter=",", fmt = "%s") # save the electrodes as a csv file to the output directory
-    print(f"Electrodes saved to directory as {ids[k]}_electrodes.csv")
+    try:
+        files = os.listdir(paths[k]) # get pickle files in directory
+        print(f"File(s): {files}") # print files in directory
+        pickleData = [pd.read_pickle(paths[k] + "/" + x) for x in files] # unpickle functional connectivity data
+        functionalArrays = [f[0:5] for f in pickleData] # take all of the numeric data
+        electrodes = pickleData[0][5] # get list of electrodes from the first pickle file
+        print(f"(# electrodes, # electrodes, time): {functionalArrays[0][0].shape}")
+        functional = np.concatenate(functionalArrays, axis=-1) # combine arrays into one array along the time (last) axis
+        medianConnectivityMatrix = np.median(functional, axis=-1) # take median values element-wise along the time (last) axis
+        varianceConnectivityMatrix = np.var(functional, axis=-1, ddof=1) # take sample variance element-wise along the time (last) axis
+        print(f"Median result:\n {medianConnectivityMatrix}") # print result to the console
+        print(f"Variance result:\n {varianceConnectivityMatrix}") # print result to the console
+        print(f"Shape: {medianConnectivityMatrix.shape}")
+        medianOutputFileName = f"{ids[k]}_median_conn_matrix"
+        varianceOutputFileName = f"{ids[k]}_variance_conn_matrix"
+        np.save(f"{outputPath}/{medianOutputFileName}.npy", medianConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
+        np.save(f"{outputPath}/{varianceOutputFileName}.npy", varianceConnectivityMatrix, allow_pickle=False) # save to .npy file in the same directory
+        counter += 1
+        print(f"Output saved to directory as {medianOutputFileName}.npy, {varianceOutputFileName}.npy")
+        np.savetxt(f"{outputPath}/{ids[k]}_electrodes.csv", electrodes[np.newaxis], delimiter=",", fmt = "%s") # save the electrodes as a csv file to the output directory
+        print(f"Electrodes saved to directory as {ids[k]}_electrodes.csv")
+    except FileNotFoundError:
+        print("FileNotFoundError: The provided path does not exist. Skipping...")
 print(f"{len(paths)*2} matrix file(s) generated and {counter*2} matrix file(s) saved.")
 print("Done.")
