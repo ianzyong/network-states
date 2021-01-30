@@ -34,7 +34,9 @@ RID0381
 317600000000
 C3,CZ,ECG1,ECG2,F3,F7,FZ,O1,P3,PZ,RB1,RC8,RK1,T3,T5
 ```
-If the intervals you want to calculate are from a single patient, evenly spaced, and of the same duration, then you can use `generate_intervals.py` to automatically generate a usable `.txt` file.
+If the intervals you want to calculate are from a single patient, evenly spaced, and of the same duration, then you can use `generate_spaced_intervals.py` to automatically generate a usable `.txt` file.
+
+If the intervals you want to calculate are from a single patient, contiguous, and directly lead up to and follow each ictal period, then you can use `generate_pre_post_intervals.py`. 
 
 Once you have a valid `.txt`, follow steps 1-5 above and then run `python3 get_files.py [path to .txt file]` to calculate all intervals consecutively.
 
