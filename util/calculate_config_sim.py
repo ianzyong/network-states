@@ -29,7 +29,7 @@ def convertSeconds(time):
 
 pickle_dir = input('Path to folder containing pickle files: ')
 # band to run calculations on
-band = iEEG_filename = input('Which band? (0-4) ') 
+band = int(input('Which band? (0-4) ')) 
 output_filename = input('Name of output file: ')
 files = os.listdir(pickle_dir)
 
@@ -90,7 +90,7 @@ start = time.time()
 for k in range(network_config.shape[0]):
     for m in range(k+1,network_config.shape[0]):
         config_sim[k,m] = stats.pearsonr(network_config[k,:],network_config[m,:])[0]
-config_sim = config_sim + config_sim.T
+config_sim = config_sim + config_sim.T + np.identity(network_config.shape[0])
 
 # end timer
 end = time.time()
