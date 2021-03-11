@@ -49,7 +49,7 @@ import numpy as np
 import pickle
 import pandas as pd
 
-def get_Functional_connectivity(inputfile,outputfile):
+def get_Functional_connectivity(inputfile,outputfile,windowlength):
     print("\nCalculating Functional Connectivity:")
     print("inputfile: {0}".format(inputfile))
     print("outputfile: {0}".format(outputfile))
@@ -65,10 +65,10 @@ def get_Functional_connectivity(inputfile,outputfile):
     lowgamma = np.zeros((np.size(data_array,1),np.size(data_array,1),totalSecs))
     
     windows = []
-    for t in range(0,totalSecs):
+    for t in range(0,totalSecs,windowlength):
         #printProgressBar(t+1, totalSecs, prefix = "Progress:", suffix = "done. Calculating {0} of {1} functional connectivity matrices".format(t+1,totalSecs ) )
         startInd = int(t*fs)
-        endInd = int(((t+1)*fs) - 1) #calculating over 1 second windows
+        endInd = int(((t+windowlength)*fs) - 1) # calculating over windowlength
         windows.append((data_array[startInd:endInd,:],int(fs)))
 
     if __name__ == 'functional_connectivity':
@@ -97,7 +97,7 @@ def get_Functional_connectivity(inputfile,outputfile):
                 # calculations did not finish
                 return True
 
-    for t in range(0,totalSecs):
+    for t in range(0,len(range(0,totalSecs,windowlength))):
         alphatheta[:,:,t] = processed_bands[t][0]
         beta[:,:,t] = processed_bands[t][1]
         highgamma[:,:,t] = processed_bands[t][3]
