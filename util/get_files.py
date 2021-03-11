@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # input parameters
     username = input('IEEG.org username: ')
     password = input('IEEG.org password: ')
-    window_length = input('Input window_length (in seconds): ')
+    window_length = int(input('Input window_length (integer number of seconds): '))
     # initilize list to hold tuples corresponding to each patient
     patient_list = []
     # if there are arguments
