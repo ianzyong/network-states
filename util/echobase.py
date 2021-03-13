@@ -377,14 +377,29 @@ def multiband_conn(data, fs, avgref=True):
 
         data_hat = data.copy()
 
-    adj_alphatheta = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['AlphaTheta_Band'])
+    if not np.isnan(data_hat).any():
 
-    adj_beta = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['Beta_Band'])
+        adj_alphatheta = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['AlphaTheta_Band'])
 
-    adj_lowgamma = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['LowGamma_Band'])
+        adj_beta = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['Beta_Band'])
 
-    adj_highgamma = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['HighGamma_Band'])
+        adj_lowgamma = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['LowGamma_Band'])
 
+        adj_highgamma = multitaper(data_hat, fs, param['time_band'], param['n_taper'], param['HighGamma_Band'])
+    
+    else:
+
+        adj_alphatheta = np.empty((np.shape(data)[1],np.shape(data)[1],))
+        adj_alphatheta[:] = np.nan
+
+        adj_beta = np.empty((np.shape(data)[1],np.shape(data)[1],))
+        adj_beta[:] = np.nan
+
+        adj_lowgamma = np.empty((np.shape(data)[1],np.shape(data)[1],))
+        adj_lowgamma[:] = np.nan
+        
+        adj_highgamma = np.empty((np.shape(data)[1],np.shape(data)[1],))
+        adj_highgamma[:] = np.nan
 
 
     return adj_alphatheta, adj_beta, adj_lowgamma, adj_highgamma
