@@ -52,7 +52,7 @@ if __name__ == '__main__':
         # calculate duration requested an estimate the space required on disk for the eeg and functional connectivity data
         total_time = (stop_time_usec - start_time_usec)//1000000
         eeg_file_size = round((total_time/60)*(48962/1024**2),4)
-        func_file_size = eeg_file_size/(2*window_length)
+        func_file_size = round(eeg_file_size/(2*window_length),4)
         print("{}:".format(patient[1]))
         print("Duration requested = {}. Estimated space required = {} GB + {} GB = {} GB.".format(convertSeconds(total_time),eeg_file_size,func_file_size,round(eeg_file_size + func_file_size,4)))
         total_size = total_size + eeg_file_size + func_file_size
