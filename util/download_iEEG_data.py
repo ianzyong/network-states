@@ -81,7 +81,7 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
             print("breaking up data request from server because length is too long")
             for i in range(len(break_times)-1):
                 print("{0}/{1}".format(i+1, len(break_times)-1))
-                break_data[range(int( np.ceil((break_times[i]-break_times[0])/1e6*fs) ), int(  np.ceil((break_times[i+1]- break_times[0])/1e6*fs) )  ),:] = ds.get_data(break_times[i], break_times[i+1]-break_times[i], channels)
+                break_data[range(int( np.floor((break_times[i]-break_times[0])/1e6*fs) ), int(  np.ceil((break_times[i+1]- break_times[0])/1e6*fs) )  ),:] = ds.get_data(break_times[i], break_times[i+1]-break_times[i], channels)
             data = break_data
         df = pd.DataFrame(data, columns=ds.ch_labels)
         df = pd.DataFrame.drop(df, ignore_electrodes, axis=1)
