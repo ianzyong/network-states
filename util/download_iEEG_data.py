@@ -84,7 +84,8 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
                 break_data[range(int( np.floor((break_times[i]-break_times[0])/1e6*fs) ), int(  np.ceil((break_times[i+1]- break_times[0])/1e6*fs) )  ),:] = ds.get_data(break_times[i], break_times[i+1]-break_times[i], channels)
             data = break_data
         df = pd.DataFrame(data, columns=ds.ch_labels)
-        df = pd.DataFrame.drop(df, ignore_electrodes, axis=1)
+        if ignore_electrodes != ['']:
+            df = pd.DataFrame.drop(df, ignore_electrodes, axis=1)
         print("Saving to: {0}".format(outputfile))
         with open(outputfile, 'wb') as f: pickle.dump([df, fs], f, protocol=4)
         print("...done\n")
