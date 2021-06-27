@@ -1,6 +1,6 @@
 % constants to change
 path_to_localization_mat = "data/patient_localization_bipolar_May25.mat";
-patient_id = "HUP177";
+patient_id = "HUP116";
 omit_ignore = true;
 omit_non_grey_matter = true;
 omit_soz = true;
@@ -9,7 +9,7 @@ omit_soz = true;
 
 struct_data = load(path_to_localization_mat);
 localization_struct = struct_data.patient_localization;
-patient_struct = localization_struct({localization_struct.patient}=="HUP177");
+patient_struct = localization_struct({localization_struct.patient}==patient_id);
 
 num_electrodes = length(patient_struct.labels);
 ignore_binary = false(num_electrodes,1);
@@ -27,4 +27,5 @@ if omit_soz == true
 end
 
 ignore_electrodes = join(patient_struct.labels(logical(ignore_binary)),",");
+patient_id
 ignore_electrodes = ignore_electrodes{1}

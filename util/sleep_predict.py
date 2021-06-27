@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 from matplotlib.pyplot import savefig
 #import seaborn as sns
-import bct
 import re
 from scipy import signal, integrate, io, stats
 from scipy.fft import fft, fftfreq
@@ -215,6 +214,6 @@ for k in range(len(pickle_paths)):
     fig.tight_layout()
 
     # save figure to disk
-    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data',f'{patient_id}_sleep_results.png')
+    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'{patient_id}_sleep_results.png')
     fig.savefig(output_directory)
     print(f"Results saved to {output_directory}.")
