@@ -66,6 +66,10 @@ def notch_filter(data, rem, Q, fs):
 today = date.today()
 date_today = today.strftime("%Y-%m-%d")
 
+# get time
+now = datetime.now()
+current_time = now.strftime("%H.%M.%S")
+
 pickle_paths = ["foo"]
 ids = ["foo","bar"]
 while len(pickle_paths) != len(ids):
@@ -181,7 +185,7 @@ for k in range(len(pickle_paths)):
         # adjust channel predictions to favor W and N3 stages
         num_W = channel_predictions.count("W")
         num_N3 = channel_predictions.count("N3")
-        for k in range(num_W):
+        for k in range(num_W*2):
             channel_predictions.append("W")
         for k in range(num_N3):
             channel_predictions.append("N3")
@@ -226,6 +230,6 @@ for k in range(len(pickle_paths)):
     fig.tight_layout()
 
     # save figure to disk
-    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'{patient_id}_sleep_results_{date_today}.png')
+    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'{patient_id}_sleep_results_{date_today}_{current_time}.png')
     fig.savefig(output_directory)
     print(f"Results saved to {output_directory}.")
