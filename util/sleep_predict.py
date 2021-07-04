@@ -21,6 +21,7 @@ from scipy.fft import fft, fftfreq
 import math
 import matlab
 import matlab.engine
+from datetime import date
 
 # convert number of seconds to hh:mm:ss
 def convertSeconds(time): 
@@ -60,6 +61,10 @@ def notch_filter(data, rem, Q, fs):
     b, a = notch(rem, Q, fs)
     y = signal.lfilter(b, a, data)
     return y
+
+# get date
+today = date.today()
+date_today = today.strftime("%Y-%m-%d")
 
 pickle_paths = ["foo"]
 ids = ["foo","bar"]
@@ -173,6 +178,13 @@ for k in range(len(pickle_paths)):
                 eng.workspace["band_data"] = eng.eval("cell2table(band_data)")
                 eng.workspace["band_data"] = eng.eval("renamevars(band_data,[\"band_data1\",\"band_data2\",\"band_data3\",\"band_data4\",\"band_data5\",\"band_data6\",\"band_data7\",\"band_data8\",\"band_data9\",\"band_data10\",\"band_data11\",\"band_data12\",\"band_data13\",\"band_data14\",\"band_data15\"],[\"MeanDeltaBandPower\",\"MeanThetaBandPower\",\"MeanAlphaBandPower\",\"MeanBetaBandPower\",\"MeanGammaBandPower\",\"DeltaBandPowerVariance\",\"ThetaBandPowerVariance\",\"AlphaBandPowerVariance\",\"BetaBandPowerVariance\",\"GammaBandPowerVariance\",\"DeltaBandPowerRange\",\"ThetaBandPowerRange\",\"AlphaBandPowerRange\",\"BetaBandPowerRange\",\"GammaBandPowerRange\"])")
                 channel_predictions.append(eng.eval("string(predictFcn(band_data))"))
+        # adjust channel predictions to favor W and N3 stages
+        num_W = channel_predictions.count("W")
+        num_N3 = channel_predictions.count("N3")
+        for k in range(num_W):
+            channel_predictions.append("W")
+        for k in range(num_N3):
+            channel_predictions.append("N3")
         segment_predictions.append(stats.mode(channel_predictions))
         
     prediction_text = [x[0][0] for x in segment_predictions]
@@ -214,6 +226,6 @@ for k in range(len(pickle_paths)):
     fig.tight_layout()
 
     # save figure to disk
-    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'{patient_id}_sleep_results.png')
+    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'{patient_id}_sleep_results_{date_today}.png')
     fig.savefig(output_directory)
     print(f"Results saved to {output_directory}.")
