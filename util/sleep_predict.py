@@ -186,9 +186,9 @@ for k in range(len(pickle_paths)):
         # adjust channel predictions to favor W and N3 stages
         num_W = channel_predictions.count("W")
         num_N3 = channel_predictions.count("N3")
-        for k in range(num_W*2):
+        for k in range(num_W*4):
             channel_predictions.append("W")
-        for k in range(num_N3):
+        for k in range(num_N3*2):
             channel_predictions.append("N3")
         segment_predictions.append(stats.mode(channel_predictions))
         
