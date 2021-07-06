@@ -82,6 +82,11 @@ while len(pickle_paths) != len(ids):
     pickle_paths = pickle_paths.split(",")
     ids = ids.split(",")
 
+# get multiplier values
+w_multiplier = float(input('w_multiplier: '))
+n2_multiplier = float(input('n2_multiplier: '))
+n3_multiplier = float(input('n3_multiplier: '))
+
 for k in range(len(pickle_paths)):
     patient_id = ids[k]
     print(f"Obtaining sleep stage predictions for {patient_id}... ({k+1} of {len(pickle_paths)})")
@@ -183,12 +188,16 @@ for k in range(len(pickle_paths)):
                 eng.workspace["band_data"] = eng.eval("cell2table(band_data)")
                 eng.workspace["band_data"] = eng.eval("renamevars(band_data,[\"band_data1\",\"band_data2\",\"band_data3\",\"band_data4\",\"band_data5\",\"band_data6\",\"band_data7\",\"band_data8\",\"band_data9\",\"band_data10\",\"band_data11\",\"band_data12\",\"band_data13\",\"band_data14\",\"band_data15\"],[\"MeanDeltaBandPower\",\"MeanThetaBandPower\",\"MeanAlphaBandPower\",\"MeanBetaBandPower\",\"MeanGammaBandPower\",\"DeltaBandPowerVariance\",\"ThetaBandPowerVariance\",\"AlphaBandPowerVariance\",\"BetaBandPowerVariance\",\"GammaBandPowerVariance\",\"DeltaBandPowerRange\",\"ThetaBandPowerRange\",\"AlphaBandPowerRange\",\"BetaBandPowerRange\",\"GammaBandPowerRange\"])")
                 channel_predictions.append(eng.eval("string(predictFcn(band_data))"))
+        
         # adjust channel predictions to favor W and N3 stages
         num_W = channel_predictions.count("W")
+        num_N2 = channel_predictions.count("N2")
         num_N3 = channel_predictions.count("N3")
-        for k in range(num_W*4):
+        for k in range(int(round(num_W*(w_multiplier-1)))):
             channel_predictions.append("W")
-        for k in range(num_N3*2):
+        for k in range(int(round(num_N2*(n2_multiplier-1)))):
+            channel_predictions.append("N2")
+        for k in range(int(round(num_N3*(n3_multiplier-1)))):
             channel_predictions.append("N3")
         segment_predictions.append(stats.mode(channel_predictions))
         
@@ -231,6 +240,11 @@ for k in range(len(pickle_paths)):
     fig.tight_layout()
 
     # save figure to disk
-    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'{patient_id}_sleep_results_{date_today}_{current_time}.png')
+    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'Wx{w_multiplier}_N2x{n2_multiplier}_N3x{n3_multiplier}',f'{patient_id}_sleep_results_{date_today}_Wx{w_multiplier}_N2x{n2_multiplier}_N3x{n3_multiplier}.png')
+    
+    # create necessary directories if they do not exist
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
     fig.savefig(output_directory)
     print(f"Results saved to {output_directory}.")
