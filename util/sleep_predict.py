@@ -240,11 +240,12 @@ for k in range(len(pickle_paths)):
     fig.tight_layout()
 
     # save figure to disk
-    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'Wx{w_multiplier}_N2x{n2_multiplier}_N3x{n3_multiplier}',f'{patient_id}_sleep_results_{date_today}_Wx{w_multiplier}_N2x{n2_multiplier}_N3x{n3_multiplier}.png')
-    
+    output_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data','sleep_predictions',f'Wx{w_multiplier}_N2x{n2_multiplier}_N3x{n3_multiplier}')
+    output_file = os.path.join(output_directory,f'{patient_id}_sleep_results_{date_today}_Wx{w_multiplier}_N2x{n2_multiplier}_N3x{n3_multiplier}.png')
+
     # create necessary directories if they do not exist
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
-    fig.savefig(output_directory)
-    print(f"Results saved to {output_directory}.")
+    fig.savefig(output_file)
+    print(f"Results saved to {output_file}.")
