@@ -1,7 +1,18 @@
-import os
 import sys
+import os
+import os.path as op
+import shutil
+from pprint import pprint
+sys.path.append('../../ieegpy/ieeg')
+from ieeg.auth import Session
+import pandas as pd
+import pickle
+import numpy as np
+import mne
+from mne_bids import (write_raw_bids, BIDSPath, read_raw_bids, print_dir_tree)
 import time
 from download_iEEG_data import get_iEEG_data
+import pyedflib
 
 # convert number of seconds to hh:mm:ss
 def convertSeconds(time): 
@@ -18,6 +29,7 @@ def convertSeconds(time):
         hours = "0" + str(hours)
     return ":".join(str(n) for n in [hours,minutes,seconds])
 
+# download ieeg data from ieeg.org
 if __name__ == '__main__':
     # input parameters
     username = input('IEEG.org username: ')
@@ -95,6 +107,37 @@ if __name__ == '__main__':
                     
             else:
                 print("{} exists, skipping...".format(outputfile))
+
+            # write interval to an edf file
+            signals = pd.read_pickle(outputfile)
+
+            s = Session(username, password)
+            ds = s.open_dataset(iEEG_filename)
+
+            subject_id = rid
+            channel_names = ds.get_channel_labels()
+            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, sample_frequency=256)
+            sample_rate = ds.sample_rate
+            header = pyedflib.highlevel.make_header(patientname=subject_id)
+
+            edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
+            pyedflib.highlevel.write_edf(edf_file, signals, signal_headers, header)
+
+            # convert to BIDS format and save
+            raw = mne.io.read_raw_edf(edf_file)
+            raw.info['line_freq'] = 60 # power line frequency
+            # set bad electrodes
+            raw.info['bads'].extend(removed_channels)
+
+            bids_root = os.path.join(parent_directory,'bids_output')
+            # create necessary directories if they do not exist
+            if not os.path.exists(bids_root):
+                os.makedirs(bids_root)
+            bids_path = BIDSPath(subject=subject_id, root=bids_root)
+
+            write_raw_bids(raw, bids_path, overwrite=True)
+
+            print("Saved BIDS-formatted interval for {} to {}.".format(subject_id,bids_root))
 
         total_end = time.time()
         print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
