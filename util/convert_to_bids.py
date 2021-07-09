@@ -109,15 +109,17 @@ if __name__ == '__main__':
                 print("{} exists, skipping...".format(outputfile))
 
             # write interval to an edf file
-            signals = pd.read_pickle(outputfile)
-
+            signals = np.transpose(pd.read_pickle(outputfile)[0].to_numpy())
+            print(signals.shape)
             s = Session(username, password)
             ds = s.open_dataset(iEEG_filename)
 
             subject_id = rid
             channel_names = ds.get_channel_labels()
-            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, sample_frequency=256)
-            sample_rate = ds.sample_rate
+            channel_names = [x for x in channel_names if x not in removed_channels]
+            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names)
+            print(len(signal_headers))
+            #sample_rate = ds.sample_rate
             header = pyedflib.highlevel.make_header(patientname=subject_id)
 
             edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
