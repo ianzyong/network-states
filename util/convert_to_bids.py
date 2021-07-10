@@ -102,23 +102,19 @@ if __name__ == '__main__':
 
                 # report time elapsed
                 print("Time elapsed = {}".format(convertSeconds(int(end - start))))
-
-                process_count = process_count + 1
                     
             else:
                 print("{} exists, skipping...".format(outputfile))
 
             # write interval to an edf file
             signals = np.transpose(pd.read_pickle(outputfile)[0].to_numpy())
-            print(signals.shape)
             s = Session(username, password)
             ds = s.open_dataset(iEEG_filename)
 
             subject_id = rid
             channel_names = ds.get_channel_labels()
             channel_names = [x for x in channel_names if x not in removed_channels]
-            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names)
-            print(len(signal_headers))
+            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000)
             #sample_rate = ds.sample_rate
             header = pyedflib.highlevel.make_header(patientname=subject_id)
 
@@ -129,7 +125,8 @@ if __name__ == '__main__':
             raw = mne.io.read_raw_edf(edf_file)
             raw.info['line_freq'] = 60 # power line frequency
             # set bad electrodes
-            raw.info['bads'].extend(removed_channels)
+            #raw.info['bads'].extend(removed_channels)
+            #print(raw.info['bads'])
 
             bids_root = os.path.join(parent_directory,'bids_output')
             # create necessary directories if they do not exist
@@ -140,6 +137,8 @@ if __name__ == '__main__':
             write_raw_bids(raw, bids_path, overwrite=True)
 
             print("Saved BIDS-formatted interval for {} to {}.".format(subject_id,bids_root))
+            
+            process_count = process_count + 1
 
         total_end = time.time()
         print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
