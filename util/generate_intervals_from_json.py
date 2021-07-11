@@ -45,22 +45,26 @@ with open("{}.txt".format(filename), 'a') as txt:
             
         # for each ictal period
         for num in data["PATIENTS"][patient]["Events"]["Ictal"]:
-            seizure_start = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureUEO"])*1000000)
-            seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000000)
-            if seizure_count < max_seizures and seizure_stop > seizure_start:
-                
-                # write interval to text file
-                txt.write('{}\n'.format(pid))
-                txt.write('{}\n'.format(patient))
-                if seizure_start-preictal_offset < 0:
-                    txt.write('0\n')
-                else:
-                    txt.write('{}\n'.format(seizure_start-preictal_offset))
-                txt.write('{}\n'.format(seizure_stop+postictal_offset))
-                txt.write('{}\n'.format(','.join(ignore_electrodes)))
-                
-                seizure_count = seizure_count + 1
-    
+            try:
+                seizure_start = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureUEO"])*1000000)
+                seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000000)
+                if seizure_count < max_seizures and seizure_stop > seizure_start:
+                    
+                    # write interval to text file
+                    txt.write('{}\n'.format(pid))
+                    txt.write('{}\n'.format(patient))
+                    if seizure_start-preictal_offset < 0:
+                        txt.write('0\n')
+                    else:
+                        txt.write('{}\n'.format(seizure_start-preictal_offset))
+                    txt.write('{}\n'.format(seizure_stop+postictal_offset))
+                    txt.write('{}\n'.format(','.join(ignore_electrodes)))
+                    
+                    seizure_count = seizure_count + 1
+            except KeyError:
+                print("Warning: KeyError encountered for {}, there may be fields missing in the json. Skipping...".format(patient))
+                continue
+            
     # INTERICTAL INTERVALS
     # for each patient
     for row in df.itertuples():
