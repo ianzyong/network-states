@@ -18,6 +18,7 @@ filename = input('Input filename for output: ')
 f = open(json_path,)
 data = json.load(f)
 
+# load xlsx
 df = pd.read_excel("atlas_metadata_final.xlsx")
 id_dict = dict(zip(df["Patient"], df['portal_ID']))
 ignore_dict = {}
@@ -44,8 +45,8 @@ with open("{}.txt".format(filename), 'a') as txt:
         # for each ictal period
         for num in data["PATIENTS"][patient]["Events"]["Ictal"]:
             if seizure_count < max_seizures:
-                seizure_start = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureUEO"])*1000)
-                seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000)
+                seizure_start = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureUEO"])*1000000)
+                seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000000)
                 
                 # write interval to text file
                 txt.write('{}\n'.format(pid))
@@ -65,13 +66,14 @@ with open("{}.txt".format(filename), 'a') as txt:
         # write interval to text file
         txt.write('{}\n'.format(row.portal_ID))
         txt.write('{}\n'.format(row.Patient))
-        txt.write('{}\n'.format(row.clip1_awake*1000))
-        txt.write('{}\n'.format(row.clip1_awake*1000+interictal_length))
-        txt.write('{}\n'.format(ignore_dict[row.Patient])))
+        txt.write('{}\n'.format(row.clip1_awake*1000000))
+        txt.write('{}\n'.format(row.clip1_awake*1000000+interictal_length))
+        txt.write('{}\n'.format(ignore_dict[row.Patient]))
 
         txt.write('{}\n'.format(row.portal_ID))
         txt.write('{}\n'.format(row.Patient))
-        txt.write('{}\n'.format(row.clip2_awake*1000))
-        txt.write('{}\n'.format(row.clip2_awake*1000+interictal_length))
-        txt.write('{}\n'.format(ignore_dict[row.Patient])))
-    
+        txt.write('{}\n'.format(row.clip2_awake*1000000))
+        txt.write('{}\n'.format(row.clip2_awake*1000000+interictal_length))
+        txt.write('{}\n'.format(ignore_dict[row.Patient]))
+
+print('File saved to {}.txt.'.format(filename))    
