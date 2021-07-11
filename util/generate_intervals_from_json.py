@@ -45,9 +45,9 @@ with open("{}.txt".format(filename), 'a') as txt:
             
         # for each ictal period
         for num in data["PATIENTS"][patient]["Events"]["Ictal"]:
-            if seizure_count < max_seizures:
-                seizure_start = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureUEO"])*1000000)
-                seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000000)
+            seizure_start = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureUEO"])*1000000)
+            seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000000)
+            if seizure_count < max_seizures and seizure_stop > seizure_start:
                 
                 # write interval to text file
                 txt.write('{}\n'.format(pid))
