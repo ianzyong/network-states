@@ -94,8 +94,12 @@ if __name__ == '__main__':
 
                 # start timer
                 start = time.time()
-
-                get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
+                
+                try:
+                    get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
+                except KeyError:
+                    print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
+                    continue
 
                 # stop timer
                 end = time.time()
