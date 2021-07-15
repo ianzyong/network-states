@@ -21,6 +21,7 @@ data = json.load(f)
 # load xlsx
 df = pd.read_excel("atlas_metadata_final.xlsx")
 id_dict = dict(zip(df["Patient"], df['portal_ID']))
+acq_dict = dict(zip(df["Patient"], df['Implant']))
 ignore_dict = {}
 
 # write to text file
@@ -50,9 +51,11 @@ with open("{}.txt".format(filename), 'a') as txt:
                 seizure_stop = int(float(data["PATIENTS"][patient]["Events"]["Ictal"][num]["SeizureEnd"])*1000000)
                 if seizure_count < max_seizures and seizure_stop > seizure_start:
                     
+                    acq = acq_dict[patient].lower()
+                    interval_name = '{}_ses-presurgery_task-ictal_acq-{}_run-{0:02d}_ieeg'.format(patient,acq,seizure_count+1)
                     # write interval to text file
                     txt.write('{}\n'.format(pid))
-                    txt.write('{}\n'.format(patient))
+                    txt.write('interval_name\n')
                     if seizure_start-preictal_offset < 0:
                         txt.write('0\n')
                     else:
@@ -68,15 +71,21 @@ with open("{}.txt".format(filename), 'a') as txt:
     # INTERICTAL INTERVALS
     # for each patient
     for row in df.itertuples():
+
+        patient = row.Patient
+        acq = acq_dict[patient].lower()
+        interval_name = '{}_ses-presurgery_task-interictal_acq-{}_run-01_ieeg'.format(patient,acq)
+        
         # write interval to text file
         txt.write('{}\n'.format(row.portal_ID))
-        txt.write('{}\n'.format(row.Patient))
+        txt.write('interval_name\n')
         txt.write('{}\n'.format(row.clip1_awake*1000000))
         txt.write('{}\n'.format(row.clip1_awake*1000000+interictal_length))
         txt.write('{}\n'.format(ignore_dict[row.Patient]))
 
+        interval_name = '{}_ses-presurgery_task-interictal_acq-{}_run-02_ieeg'.format(patient,acq)
         txt.write('{}\n'.format(row.portal_ID))
-        txt.write('{}\n'.format(row.Patient))
+        txt.write('interval_name\n')
         txt.write('{}\n'.format(row.clip2_awake*1000000))
         txt.write('{}\n'.format(row.clip2_awake*1000000+interictal_length))
         txt.write('{}\n'.format(ignore_dict[row.Patient]))
