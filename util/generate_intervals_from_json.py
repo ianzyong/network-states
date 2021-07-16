@@ -52,10 +52,11 @@ with open("{}.txt".format(filename), 'a') as txt:
                 if seizure_count < max_seizures and seizure_stop > seizure_start:
                     
                     acq = acq_dict[patient].lower()
-                    interval_name = '{}_ses-presurgery_task-ictal_acq-{}_run-{0:02d}_ieeg'.format(patient,acq,seizure_count+1)
+                    run = str(seizure_count+1).zfill(2)
+                    interval_name = '{}_ses-presurgery_task-ictal_acq-{}_run-{}_ieeg'.format(patient,acq,run)
                     # write interval to text file
                     txt.write('{}\n'.format(pid))
-                    txt.write('interval_name\n')
+                    txt.write('{}\n'.format(interval_name))
                     if seizure_start-preictal_offset < 0:
                         txt.write('0\n')
                     else:
@@ -78,14 +79,14 @@ with open("{}.txt".format(filename), 'a') as txt:
         
         # write interval to text file
         txt.write('{}\n'.format(row.portal_ID))
-        txt.write('interval_name\n')
+        txt.write('{}\n'.format(interval_name))
         txt.write('{}\n'.format(row.clip1_awake*1000000))
         txt.write('{}\n'.format(row.clip1_awake*1000000+interictal_length))
         txt.write('{}\n'.format(ignore_dict[row.Patient]))
 
         interval_name = '{}_ses-presurgery_task-interictal_acq-{}_run-02_ieeg'.format(patient,acq)
         txt.write('{}\n'.format(row.portal_ID))
-        txt.write('interval_name\n')
+        txt.write('{}\n'.format(interval_name))
         txt.write('{}\n'.format(row.clip2_awake*1000000))
         txt.write('{}\n'.format(row.clip2_awake*1000000+interictal_length))
         txt.write('{}\n'.format(ignore_dict[row.Patient]))

@@ -79,6 +79,7 @@ if __name__ == '__main__':
             iEEG_filename = patient[0]
             interval_name = patient[1]
             rid = interval_name.partition("_")[0]
+            acq = interval_name.split("_")[3].partition("-")[-1]
             start_time_usec = patient[2]
             stop_time_usec = patient[3]
             removed_channels = patient[4].split(",")
@@ -112,7 +113,12 @@ if __name__ == '__main__':
             else:
                 print("{} exists, skipping...".format(outputfile))
 
-            pickle_data = pd.read_pickle(outputfile)
+            try:
+                pickle_data = pd.read_pickle(outputfile)
+            except FileNotFoundError:
+                print("Pickle file not found, skipping...")
+                continue
+
             signals = np.transpose(pickle_data[0].to_numpy())
             fs = pickle_data[1]
 
@@ -127,8 +133,8 @@ if __name__ == '__main__':
 
             # write interval to an edf file
             
-            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000)
-            #sample_rate = ds.sample_rate
+            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, sample_rate=fs, physical_min=-50000, physical_max=50000)
+
             header = pyedflib.highlevel.make_header(patientname=rid)
 
             # edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
@@ -139,6 +145,8 @@ if __name__ == '__main__':
             raw = mne.io.read_raw_edf(edf_file)
 
             raw.info['line_freq'] = 60 # power line frequency
+            raw.set_channel_types({ch: acq for ch in raw.ch_names})
+
             # set bad electrodes
             #raw.info['bads'].extend(removed_channels)
             #print(raw.info['bads'])
@@ -147,7 +155,9 @@ if __name__ == '__main__':
             # create necessary directories if they do not exist
             if not os.path.exists(bids_root):
                 os.makedirs(bids_root)
-            bids_path = BIDSPath(subject=rid, root=bids_root)
+            int_split = interval_name.split("_")
+            
+            bids_path = BIDSPath(subject=rid, session=int_split[1].split("-")[1], task=int_split[2].split("-")[1], acquisition=int_split[3].split("-")[1], run=int_split[4].split("-")[1], datatype='ieeg', suffix='ieeg', root=bids_root)
 
             write_raw_bids(raw, bids_path, overwrite=True)
 
