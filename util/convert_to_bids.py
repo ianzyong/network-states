@@ -35,6 +35,7 @@ if __name__ == '__main__':
     # input parameters
     username = input('IEEG.org username: ')
     password = input('IEEG.org password: ')
+    overwrite_files = bool(int(input("Overwrite existing .edf files? (1 for yes, 0 for no) ")))
     # initilize list to hold tuples corresponding to each patient
     patient_list = []
     # if there are arguments
@@ -92,78 +93,78 @@ if __name__ == '__main__':
                 os.makedirs(eeg_directory)
             outputfile = os.path.join(eeg_directory,"sub-{}_{}_{}_{}_EEG.pickle".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
             
-            # download data if the file does not already exist
-            if not os.path.isfile(outputfile):
-
-                # start timer
-                start = time.time()
-                
-                try:
-                    get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
-                except KeyError:
-                    print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
-                    continue
-
-                # stop timer
-                end = time.time()
-
-                # report time elapsed
-                print("Time elapsed = {}".format(convertSeconds(int(end - start))))
-                    
-            else:
-                print("{} exists, skipping...".format(outputfile))
-
-            try:
-                pickle_data = pd.read_pickle(outputfile)
-            except FileNotFoundError:
-                print("Pickle file not found, skipping...")
-                continue
-
-            signals = np.transpose(pickle_data[0].to_numpy())
-            fs = pickle_data[1]
-
-            s = Session(username, password)
-            ds = s.open_dataset(iEEG_filename)
-            channel_names = ds.get_channel_labels()
-            channel_names = [x for x in channel_names if x not in removed_channels]
-
-            # TODO: write interval in BrainVision format
-
-            #write_brainvision(data=signals, sfreq=fs, ch_names=channel_names, fname_base=fname, folder_out=tmpdir,events=events)
-
-            # write interval to an edf file
-            
-            signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, sample_rate=fs, physical_min=-50000, physical_max=50000)
-
-            header = pyedflib.highlevel.make_header(patientname=rid)
-
-            # edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
-            edf_file = os.path.join(patient_directory,"{}.edf".format(interval_name))
-            pyedflib.highlevel.write_edf(edf_file, signals, signal_headers, header)
-
-            # convert to BIDS format and save
-            raw = mne.io.read_raw_edf(edf_file)
-
-            raw.info['line_freq'] = 60 # power line frequency
-            raw.set_channel_types({ch: acq for ch in raw.ch_names})
-
-            # set bad electrodes
-            #raw.info['bads'].extend(removed_channels)
-            #print(raw.info['bads'])
+            edf_filename = os.path.join(eeg_directory,"sub-{}_{}_{}_{}_EEG.pickle".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
 
             bids_root = os.path.join(parent_directory,'bids_output')
-            # create necessary directories if they do not exist
-            if not os.path.exists(bids_root):
-                os.makedirs(bids_root)
-            int_split = interval_name.split("_")
-            
-            bids_path = BIDSPath(subject=rid, session=int_split[1].split("-")[1], task=int_split[2].split("-")[1], acquisition=int_split[3].split("-")[1], run=int_split[4].split("-")[1], datatype='ieeg', suffix='ieeg', root=bids_root)
 
-            write_raw_bids(raw, bids_path, overwrite=True)
+            if overwrite_files or not os.path.isfile(os.path.join(bids_root,"sub-{}".format(rid),"ses-presurgery","ieeg","{}.edf".format(interval_name))):
 
-            print("Saved BIDS-formatted interval for {} to {}.".format(rid,bids_root))
-            
-            process_count = process_count + 1
+                # download data if the file does not already exist
+                if not os.path.isfile(outputfile):
+
+                    # start timer
+                    start = time.time()
+                    
+                    try:
+                        get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
+                    except KeyError:
+                        print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
+                        continue
+
+                    # stop timer
+                    end = time.time()
+
+                    # report time elapsed
+                    print("Time elapsed = {}".format(convertSeconds(int(end - start))))
+                        
+                else:
+                    print("{} exists, skipping...".format(outputfile))
+
+                pickle_data = pd.read_pickle(outputfile)
+                signals = np.transpose(pickle_data[0].to_numpy())
+                fs = pickle_data[1]
+
+                s = Session(username, password)
+                ds = s.open_dataset(iEEG_filename)
+                channel_names = ds.get_channel_labels()
+                channel_names = [x for x in channel_names if x not in removed_channels]
+
+                # TODO: write interval in BrainVision format
+
+                #write_brainvision(data=signals, sfreq=fs, ch_names=channel_names, fname_base=fname, folder_out=tmpdir,events=events)
+
+                # write interval to an edf file
+                
+                signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000)
+                #sample_rate = ds.sample_rate
+                header = pyedflib.highlevel.make_header(patientname=rid)
+
+                # edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
+                edf_file = os.path.join(patient_directory,"{}.edf".format(interval_name))
+                pyedflib.highlevel.write_edf(edf_file, signals, signal_headers, header)
+
+                # convert to BIDS format and save
+                raw = mne.io.read_raw_edf(edf_file)
+
+                raw.info['line_freq'] = 60 # power line frequency
+                # set bad electrodes
+                #raw.info['bads'].extend(removed_channels)
+                #print(raw.info['bads'])
+
+                # create necessary directories if they do not exist
+                if not os.path.exists(bids_root):
+                    os.makedirs(bids_root)
+                bids_path = BIDSPath(subject=rid, root=bids_root)
+
+                write_raw_bids(raw, bids_path, overwrite=True)
+
+                print("Saved BIDS-formatted interval for {} to {}.".format(rid,bids_root))
+                
+                process_count = process_count + 1
+
+            else:
+
+                print("BIDS-formatted interval for {} already exists, skipping...".format(rid))
 
         total_end = time.time()
         print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
