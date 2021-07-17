@@ -35,7 +35,8 @@ if __name__ == '__main__':
     # input parameters
     username = input('IEEG.org username: ')
     password = input('IEEG.org password: ')
-    overwrite_files = bool(int(input("Overwrite existing .edf files? (1 for yes, 0 for no) ")))
+    overwrite_files = input("Overwrite existing .edf files? (y/n) ")
+    overwrite_files = (overwrite_files == "y" or overwrite_files == "Y")
     # initilize list to hold tuples corresponding to each patient
     patient_list = []
     # if there are arguments
@@ -93,11 +94,11 @@ if __name__ == '__main__':
                 os.makedirs(eeg_directory)
             outputfile = os.path.join(eeg_directory,"sub-{}_{}_{}_{}_EEG.pickle".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
             
-            edf_filename = os.path.join(eeg_directory,"sub-{}_{}_{}_{}_EEG.pickle".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
+            bids_root = os.path.join(parent_directory,'bids_output')            
+            
+            edf_filename = os.path.join(bids_root,"sub-{}".format(rid),"ses-presurgery","ieeg","sub-{}.edf".format(interval_name))
 
-            bids_root = os.path.join(parent_directory,'bids_output')
-
-            if overwrite_files or not os.path.isfile(os.path.join(bids_root,"sub-{}".format(rid),"ses-presurgery","ieeg","{}.edf".format(interval_name))):
+            if overwrite_files or not os.path.isfile(edf_filename):
 
                 # download data if the file does not already exist
                 if not os.path.isfile(outputfile):
@@ -120,7 +121,12 @@ if __name__ == '__main__':
                 else:
                     print("{} exists, skipping...".format(outputfile))
 
-                pickle_data = pd.read_pickle(outputfile)
+                try:
+                    pickle_data = pd.read_pickle(outputfile)
+                except FileNotFoundError:
+                    print("Pickle data not found, skipping...")
+                    continue
+
                 signals = np.transpose(pickle_data[0].to_numpy())
                 fs = pickle_data[1]
 
@@ -164,7 +170,7 @@ if __name__ == '__main__':
 
             else:
 
-                print("BIDS-formatted interval for {} already exists, skipping...".format(rid))
+                print("BIDS-formatted interval for {} already exists at {}, skipping...".format(rid,edf_filename))
 
         total_end = time.time()
         print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
