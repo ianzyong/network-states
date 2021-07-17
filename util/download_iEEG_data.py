@@ -89,7 +89,21 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
             data = break_data
         df = pd.DataFrame(data, columns=ds.ch_labels)
         if ignore_electrodes != ['']:
-            df = pd.DataFrame.drop(df, ignore_electrodes, axis=1)
+            for electrode in ignore_electrodes:
+                if electrode in ds.ch_labels:
+                    df = pd.DataFrame.drop(df, electrode, axis=1)
+                else:
+                    for i, c in enumerate(electrode):
+                        if c.isdigit():
+                            break
+                    padded_num = electrode[i:].zfill(2)
+                    padded_name = electrode[0:i] + padded_num
+                    if padded_name in ds.ch_labels:
+                        df = pd.DataFrame.drop(df, padded_name, axis=1)
+                    elif "EEG {} {}-Ref".format(electrode[0:i],padded_num) in ds.ch_labels:
+                        df = pd.DataFrame.drop(df, "EEG {} {}-Ref".format(electrode[0:i],padded_num), axis=1)
+                    else:
+                        print("Could not resolve electrode name {}, it will not be ignored.".format(electrode))
         print("Saving to: {0}".format(outputfile))
         with open(outputfile, 'wb') as f: pickle.dump([df, fs], f, protocol=4)
         print("...done\n")
