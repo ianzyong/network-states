@@ -133,7 +133,19 @@ if __name__ == '__main__':
                 s = Session(username, password)
                 ds = s.open_dataset(iEEG_filename)
                 channel_names = ds.get_channel_labels()
-                channel_names = [x for x in channel_names if x not in removed_channels]
+
+                # make sure all necessary channels are removed
+                formatted_channels = []
+                for electrode in channel_names:
+                    for i, c in enumerate(electrode):
+                        if c.isdigit():
+                            break
+                    padded_num = electrode[i:].zfill(2)
+                    padded_name = electrode[0:i] + padded_num
+                    formatted_channels.append(padded_name)
+                    formatted_channels.append("EEG {} {}-Ref".format(electrode[0:i],padded_num))
+
+                channel_names = [x for x in channel_names if (x not in removed_channels and x not in formatted_channels)]
 
                 # TODO: write interval in BrainVision format
 
