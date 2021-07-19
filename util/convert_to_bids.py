@@ -82,6 +82,8 @@ if __name__ == '__main__':
             interval_name = patient[1]
             rid = interval_name.partition("_")[0]
             acq = interval_name.split("_")[3].partition("-")[-1]
+            task = interval_name.split("_")[2].partition("-")[-1]
+            run = interval_name.split("_")[4].partition("-")[-1]
             start_time_usec = patient[2]
             stop_time_usec = patient[3]
             removed_channels = patient[4].split(",")
@@ -111,6 +113,15 @@ if __name__ == '__main__':
                     except KeyError:
                         print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
                         continue
+                    except KeyboardInterrupt:
+                        print('Interrupted')
+                        try:
+                            sys.exit()
+                        except SystemExit:
+                            os._exit()
+                    except:
+                        print("Encountered an error, skipping...")
+                        continue
 
                     # stop timer
                     end = time.time()
@@ -136,7 +147,7 @@ if __name__ == '__main__':
 
                 # make sure all necessary channels are removed
                 formatted_channels = []
-                for electrode in channel_names:
+                for electrode in removed_channels:
                     for i, c in enumerate(electrode):
                         if c.isdigit():
                             break
@@ -145,43 +156,45 @@ if __name__ == '__main__':
                     formatted_channels.append(padded_name)
                     formatted_channels.append("EEG {} {}-Ref".format(electrode[0:i],padded_num))
 
-                channel_names = [x for x in channel_names if (x not in removed_channels and x not in formatted_channels)]
-
+                channel_names = [x for x in channel_names if (x not in removed_channels) and (x not in formatted_channels)]
+                
                 # TODO: write interval in BrainVision format
 
                 #write_brainvision(data=signals, sfreq=fs, ch_names=channel_names, fname_base=fname, folder_out=tmpdir,events=events)
 
                 # write interval to an edf file
                 
-                signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000)
+                signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000, sample_frequency=fs, transducer=acq)
                 #sample_rate = ds.sample_rate
                 header = pyedflib.highlevel.make_header(patientname=rid)
 
                 # edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
                 edf_file = os.path.join(patient_directory,"{}.edf".format(interval_name))
-                pyedflib.highlevel.write_edf(edf_file, signals, signal_headers, header)
+                try:
+                    pyedflib.highlevel.write_edf(edf_file, signals, signal_headers, header)
+                except AssertionError as err:
+                    print(err)
+                    print("Failed to write {}, skipping...".format(edf_file))
+                    continue
 
                 # convert to BIDS format and save
                 raw = mne.io.read_raw_edf(edf_file)
 
                 raw.info['line_freq'] = 60 # power line frequency
                 # set bad electrodes
-                #raw.info['bads'].extend(removed_channels)
-                #print(raw.info['bads'])
 
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):
                     os.makedirs(bids_root)
-                bids_path = BIDSPath(subject=rid, root=bids_root)
+                bids_path = BIDSPath(subject=rid, root=bids_root, session="presurgery", task=task, acquisition=acq, run=run, datatype='ieeg')
 
                 write_raw_bids(raw, bids_path, overwrite=True)
-
+                
                 print("Saved BIDS-formatted interval for {} to {}.".format(rid,bids_root))
                 
                 process_count = process_count + 1
-
+            
             else:
-
                 print("BIDS-formatted interval for {} already exists at {}, skipping...".format(rid,edf_filename))
 
         total_end = time.time()
