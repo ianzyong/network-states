@@ -77,15 +77,18 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
             data = ds.get_data(start_time_usec, duration, channels)
         if duration >= server_limit_minutes*60*1e6:
             break_times = np.ceil(np.linspace(start_time_usec, stop_time_usec, num=int(np.ceil(duration/(server_limit_minutes*60*1e6))+1), endpoint=True))
-            break_data = np.zeros(shape = (int(np.ceil(duration/1e6*fs)), len(channels)))#initialize
+            #break_data = np.zeros(shape = (int(np.ceil(duration/1e6*fs)), len(channels)))#initialize
+            break_data = np.empty(shape=(0,len(channels)), dtype=float)
             print("breaking up data request from server because length is too long")
             for i in range(len(break_times)-1):
                 print("{0}/{1}".format(i+1, len(break_times)-1))
-                try:
-                    break_data[range(int( np.floor((break_times[i]-break_times[0])/1e6*fs) ), int(  np.ceil((break_times[i+1]- break_times[0])/1e6*fs) )  ),:] = ds.get_data(break_times[i], break_times[i+1]-break_times[i], channels)
-                except ValueError:
-                    print("ValueError encountered in breaking data up for download, arrays are likely mishaped. Skipping...")
-                    return
+                break_data = np.append(break_data, ds.get_data(break_times[i], break_times[i+1]-break_times[i], channels), axis=0)
+                #try:
+                #    break_data[range(int( np.floor((break_times[i]-break_times[0])/1e6*fs) ), int(  np.floor((break_times[i+1]- break_times[0])/1e6*fs) )  ),:] = ds.get_data(break_times[i], break_times[i+1]-break_times[i], channels)
+                #except ValueError as e:
+                #    print(e)
+                #    print("ValueError encountered in breaking data up for download, arrays are likely mishaped. Skipping...")
+                #    return
             data = break_data
         df = pd.DataFrame(data, columns=ds.ch_labels)
         if ignore_electrodes != ['']:
