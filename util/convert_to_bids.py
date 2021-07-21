@@ -183,6 +183,7 @@ if __name__ == '__main__':
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):
                     os.makedirs(bids_root)
+                
                 bids_path = BIDSPath(subject=rid, root=bids_root, session="presurgery", task=task, acquisition=acq, run=run, datatype='ieeg')
 
                 write_raw_bids(raw, bids_path, overwrite=True)
