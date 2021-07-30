@@ -52,7 +52,7 @@ import pandas as pd
 import pickle
 import numpy as np
 
-def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, ignore_electrodes, outputfile):
+def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, ignore_electrodes, outputfile, get_all_channels = False):
     print("\nGetting data from iEEG.org:")
     print("iEEG_filename: {0}".format(iEEG_filename))
     print("start_time_usec: {0}".format(start_time_usec))
@@ -88,28 +88,47 @@ def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_
                     return
             data = break_data
         df = pd.DataFrame(data, columns=ds.ch_labels)
+        true_ignore_electrodes = []
         if ignore_electrodes != ['']:
-            for electrode in ignore_electrodes:
-                if electrode in ds.ch_labels:
-                    df = pd.DataFrame.drop(df, electrode, axis=1)
-                else:
-                    for i, c in enumerate(electrode):
-                        if c.isdigit():
-                            break
-                    padded_num = electrode[i:].zfill(2)
-                    padded_name = electrode[0:i] + padded_num
-                    if padded_name in ds.ch_labels:
-                        df = pd.DataFrame.drop(df, padded_name, axis=1)
-                    elif "EEG {} {}-Ref".format(electrode[0:i],padded_num) in ds.ch_labels:
-                        df = pd.DataFrame.drop(df, "EEG {} {}-Ref".format(electrode[0:i],padded_num), axis=1)
-                    else:
-                        print("Could not resolve electrode name {}, it will not be ignored.".format(electrode))
+            true_ignore_electrodes = get_true_ignore_electrodes(ds.ch_labels, ignore_electrodes)
+        
+        if not get_all_channels:
+            df = pd.DataFrame.drop(df, true_ignore_electrodes, axis=1)
+
         print("Saving to: {0}".format(outputfile))
         with open(outputfile, 'wb') as f: pickle.dump([df, fs], f, protocol=4)
         print("...done\n")
     else:
+        s = Session(username, password)
+        ds = s.open_dataset(iEEG_filename)
+
+        true_ignore_electrodes = []
+        if ignore_electrodes != ['']:
+            true_ignore_electrodes = get_true_ignore_electrodes(ds.ch_labels, ignore_electrodes)
         # data has already been downloaded for this interval
         print("{} exists, skipping...".format(outputfile))
+
+    # return ignore_electrodes as they are called on ieeg.org
+    return true_ignore_electrodes
+
+def get_true_ignore_electrodes(labels, ignore_electrodes):
+    true_ignore_electrodes = []
+    for electrode in ignore_electrodes:
+        if electrode in labels:
+            true_ignore_electrodes.append(electrode)
+        else:
+            for i, c in enumerate(electrode):
+                if c.isdigit():
+                    break
+            padded_num = electrode[i:].zfill(2)
+            padded_name = electrode[0:i] + padded_num
+            if padded_name in labels:
+                true_ignore_electrodes.append(padded_name)
+            elif "EEG {} {}-Ref".format(electrode[0:i],padded_num) in labels:
+                true_ignore_electrodes.append("EEG {} {}-Ref".format(electrode[0:i],padded_num))
+            else:
+                print("Could not resolve electrode name {}, it will not be ignored.".format(electrode))
+    return true_ignore_electrodes
 
 """"
 Download and install iEEG python package - ieegpy

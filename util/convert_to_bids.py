@@ -109,7 +109,7 @@ if __name__ == '__main__':
                     start = time.time()
                     
                     try:
-                        get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile)
+                        true_ignore_electrodes = get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile, True)
                     except KeyError:
                         print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
                         continue
@@ -182,6 +182,7 @@ if __name__ == '__main__':
 
                 raw.info['line_freq'] = 60 # power line frequency
                 # set bad electrodes
+                raw.info['bads'].extend(true_ignore_electrodes)
 
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):

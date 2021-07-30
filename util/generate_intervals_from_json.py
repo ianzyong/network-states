@@ -30,7 +30,7 @@ with open("{}.txt".format(filename), 'a') as txt:
     # for each patient
     for patient in data["PATIENTS"]:
         seizure_count = 0
-        ignore_electrodes = data["PATIENTS"][patient]["RESECTED_ELECTRODES"]
+        ignore_electrodes = data["PATIENTS"][patient]["IGNORE_ELECTRODES"]
         ignore_dict[patient] = ','.join(ignore_electrodes)
         # get portal id for patient
         try:
