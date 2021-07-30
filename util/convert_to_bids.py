@@ -37,6 +37,8 @@ if __name__ == '__main__':
     password = input('IEEG.org password: ')
     overwrite_files = input("Overwrite existing .edf files? (y/n) ")
     overwrite_files = (overwrite_files == "y" or overwrite_files == "Y")
+    redownload = input("Overwrite existing .pickle files? (y/n) ")
+    redownload = (redownload == "y" or redownload == "Y")
     # initilize list to hold tuples corresponding to each patient
     patient_list = []
     # if there are arguments
@@ -109,7 +111,7 @@ if __name__ == '__main__':
                     start = time.time()
                     
                     try:
-                        true_ignore_electrodes = get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile, True)
+                        true_ignore_electrodes = get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile, True, redownload)
                     except KeyError:
                         print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
                         continue

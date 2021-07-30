@@ -53,14 +53,14 @@ import pandas as pd
 import pickle
 import numpy as np
 
-def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, ignore_electrodes, outputfile, get_all_channels = False):
+def get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, ignore_electrodes, outputfile, get_all_channels = False, redownload = False):
     print("\nGetting data from iEEG.org:")
     print("iEEG_filename: {0}".format(iEEG_filename))
     print("start_time_usec: {0}".format(start_time_usec))
     print("stop_time_usec: {0}".format(stop_time_usec))
     print("ignore_electrodes: {0}".format(ignore_electrodes))
 
-    if not os.path.isfile(outputfile):
+    if not os.path.isfile(outputfile) or redownload == True:
         # data has not yet been downloaded for this interval
         start_time_usec = int(start_time_usec)
         stop_time_usec = int(stop_time_usec)
