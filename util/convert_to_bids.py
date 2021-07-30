@@ -14,6 +14,7 @@ from mne_bids import (write_raw_bids, BIDSPath, read_raw_bids, print_dir_tree)
 import time
 from download_iEEG_data import get_iEEG_data
 import pyedflib
+from scipy.io import loadmat
 
 # convert number of seconds to hh:mm:ss
 def convertSeconds(time): 
@@ -30,6 +31,11 @@ def convertSeconds(time):
         hours = "0" + str(hours)
     return ":".join(str(n) for n in [hours,minutes,seconds])
 
+mat_str = input('Input path to localization .mat file: ')
+mat_path = Path(mat_str)
+mat = loadmat(mat_path)
+localization = mat['patient_localization']
+
 # download ieeg data from ieeg.org
 if __name__ == '__main__':
     # input parameters
@@ -39,6 +45,7 @@ if __name__ == '__main__':
     overwrite_files = (overwrite_files == "y" or overwrite_files == "Y")
     redownload = input("Overwrite existing .pickle files? (y/n) ")
     redownload = (redownload == "y" or redownload == "Y")
+    print(redownload)
     # initilize list to hold tuples corresponding to each patient
     patient_list = []
     # if there are arguments
@@ -105,31 +112,31 @@ if __name__ == '__main__':
             if overwrite_files or not os.path.isfile(edf_filename):
 
                 # download data if the file does not already exist
-                if not os.path.isfile(outputfile):
+                #if not os.path.isfile(outputfile):
 
-                    # start timer
-                    start = time.time()
+                # start timer
+                start = time.time()
                     
+                try:
+                    true_ignore_electrodes = get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile, get_all_channels = True, redownload = redownload)
+                except KeyError:
+                    print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
+                    continue
+                except KeyboardInterrupt:
+                    print('Interrupted')
                     try:
-                        true_ignore_electrodes = get_iEEG_data(username, password, iEEG_filename, start_time_usec, stop_time_usec, removed_channels, outputfile, True, redownload)
-                    except KeyError:
-                        print("Encountered KeyError: ignore_electrodes are probably named differently on ieeg.org. Skipping...")
-                        continue
-                    except KeyboardInterrupt:
-                        print('Interrupted')
-                        try:
-                            sys.exit()
-                        except SystemExit:
-                            os._exit()
+                        sys.exit()
+                    except SystemExit:
+                        os._exit()
 
-                    # stop timer
-                    end = time.time()
+                # stop timer
+                end = time.time()
 
-                    # report time elapsed
-                    print("Time elapsed = {}".format(convertSeconds(int(end - start))))
+                # report time elapsed
+                print("Time elapsed = {}".format(convertSeconds(int(end - start))))
                         
-                else:
-                    print("{} exists, skipping...".format(outputfile))
+                #else:
+                #    print("{} exists, skipping...".format(outputfile))
 
                 try:
                     pickle_data = pd.read_pickle(outputfile)
@@ -175,13 +182,28 @@ if __name__ == '__main__':
                     print(err)
                     print("Failed to write {}, skipping...".format(edf_file))
                     continue
+                
+                coord_arr = localization[localization['patient'] == rid]["coords"][0]
+                label_arr = localization[localization['patient'] == rid]["labels"][0]
+                zi = zip(label_arr,np.split(coord_arr,len(coord_arr)))
+
+                # make montage
+                montage = mne.channels.make_dig_montage(ch_pos=dict(zi),coord_frame="mni_tal")
+                print(f'Created {len(ch_names)} channel positions')
 
                 # convert to BIDS format and save
                 raw = mne.io.read_raw_edf(edf_file)
 
                 raw.info['line_freq'] = 60 # power line frequency
+
+                # set channel types
+                raw.set_channel_types({ch: acq for ch in raw.ch_names})
+
                 # set bad electrodes
                 raw.info['bads'].extend(true_ignore_electrodes)
+                
+                # set montage
+                raw.set_montage(montage, on_missing='warn')
 
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):
