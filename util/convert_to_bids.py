@@ -153,7 +153,7 @@ if __name__ == '__main__':
                     formatted_channels.append(padded_name)
                     formatted_channels.append("EEG {} {}-Ref".format(electrode[0:i],padded_num))
 
-                channel_names = [x for x in channel_names if (x not in removed_channels) and (x not in formatted_channels)]
+                #channel_names = [x for x in channel_names if (x not in removed_channels) and (x not in formatted_channels)]
                 
                 # TODO: write interval in BrainVision format
 
