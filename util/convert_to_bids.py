@@ -119,9 +119,6 @@ if __name__ == '__main__':
                             sys.exit()
                         except SystemExit:
                             os._exit()
-                    except:
-                        print("Encountered an error, skipping...")
-                        continue
 
                     # stop timer
                     end = time.time()
@@ -164,7 +161,7 @@ if __name__ == '__main__':
 
                 # write interval to an edf file
                 
-                signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000, sample_frequency=fs, transducer=acq)
+                signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000, transducer=acq)
                 #sample_rate = ds.sample_rate
                 header = pyedflib.highlevel.make_header(patientname=rid)
 
@@ -187,6 +184,7 @@ if __name__ == '__main__':
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):
                     os.makedirs(bids_root)
+                
                 bids_path = BIDSPath(subject=rid, root=bids_root, session="presurgery", task=task, acquisition=acq, run=run, datatype='ieeg')
 
                 write_raw_bids(raw, bids_path, overwrite=True)

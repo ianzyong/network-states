@@ -36,14 +36,16 @@ with open("{}.txt".format(filename), 'a') as txt:
         try:
             pid = id_dict[patient]
         except KeyError:
-            print("Warning: KeyError encountered for {}, skipping...".format(patient))
-            continue
+            # print("Warning: KeyError encountered for {}, skipping...".format(patient))
+            # continue
             # guess the correct portal id
             # s = list(patient)
             # if s[3] == "0":
             #     del s[3]
             # pid = "".join(s) + "_phaseII"
             
+            pid = str(input("KeyError encountered for {}. Please input portal ID manually: ".format(patient)))
+
         # for each ictal period
         for num in data["PATIENTS"][patient]["Events"]["Ictal"]:
             try:
