@@ -15,6 +15,7 @@ import time
 from download_iEEG_data import get_iEEG_data
 import pyedflib
 from scipy.io import loadmat
+from pathlib import Path
 
 # convert number of seconds to hh:mm:ss
 def convertSeconds(time): 
@@ -184,12 +185,14 @@ if __name__ == '__main__':
                     continue
                 
                 coord_arr = localization[localization['patient'] == rid]["coords"][0]
+                coord_arr = [list(item.astype(float)) for item in coord_arr]
                 label_arr = localization[localization['patient'] == rid]["labels"][0]
-                zi = zip(label_arr,np.split(coord_arr,len(coord_arr)))
+                label_arr = [item[0] for item in label_arr[:,0]]
+                zi = zip(label_arr,coord_arr)
 
                 # make montage
                 montage = mne.channels.make_dig_montage(ch_pos=dict(zi),coord_frame="mni_tal")
-                print(f'Created {len(ch_names)} channel positions')
+                #print(f'Created {len(ch_names)} channel positions')
 
                 # convert to BIDS format and save
                 raw = mne.io.read_raw_edf(edf_file)
@@ -201,7 +204,7 @@ if __name__ == '__main__':
 
                 # set bad electrodes
                 raw.info['bads'].extend(true_ignore_electrodes)
-                
+
                 # set montage
                 raw.set_montage(montage, on_missing='warn')
 
