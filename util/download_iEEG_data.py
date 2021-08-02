@@ -134,6 +134,8 @@ def get_true_ignore_electrodes(labels, ignore_electrodes):
                 true_ignore_electrodes.append(padded_name)
             elif "EEG {} {}-Ref".format(electrode[0:i],padded_num) in labels:
                 true_ignore_electrodes.append("EEG {} {}-Ref".format(electrode[0:i],padded_num))
+            elif "EEG {}-Ref".format(electrode) in labels:
+                true_ignore_electrodes.append("EEG {}-Ref".format(electrode))
             else:
                 print("Could not resolve electrode name {}, it will not be ignored.".format(electrode))
     return true_ignore_electrodes
