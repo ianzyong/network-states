@@ -152,17 +152,6 @@ if __name__ == '__main__':
                 ds = s.open_dataset(iEEG_filename)
                 channel_names = ds.get_channel_labels()
 
-                # make sure all necessary channels are removed
-                formatted_channels = []
-                for electrode in removed_channels:
-                    for i, c in enumerate(electrode):
-                        if c.isdigit():
-                            break
-                    padded_num = electrode[i:].zfill(2)
-                    padded_name = electrode[0:i] + padded_num
-                    formatted_channels.append(padded_name)
-                    formatted_channels.append("EEG {} {}-Ref".format(electrode[0:i],padded_num))
-
                 #channel_names = [x for x in channel_names if (x not in removed_channels) and (x not in formatted_channels)]
                 
                 # TODO: write interval in BrainVision format
@@ -188,7 +177,14 @@ if __name__ == '__main__':
                 coord_arr = [list(item.astype(float)) for item in coord_arr]
                 label_arr = localization[localization['patient'] == rid]["labels"][0]
                 label_arr = [item[0] for item in label_arr[:,0]]
-                zi = zip(label_arr,coord_arr)
+
+                # create label dictionary
+                label_dict = generate_electrode_dict(channel_names, label_arr)
+
+                # apply label dictionary
+                true_label_arr = [label_dict[label] for label in label_arr]
+
+                zi = zip(true_label_arr,coord_arr)
 
                 # make montage
                 montage = mne.channels.make_dig_montage(ch_pos=dict(zi),coord_frame="mni_tal")
@@ -226,3 +222,25 @@ if __name__ == '__main__':
         total_end = time.time()
         print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
         print("Done.")
+
+def generate_electrode_dict(portal_labels, labels):
+    label_dict = {}
+    for label in labels:
+        if label in portal_labels:
+            label_dict[label] = label
+        else:
+            for i, c in enumerate(label):
+                if c.isdigit():
+                    break
+            padded_num = label[i:].zfill(2)
+            padded_name = label[0:i] + padded_num
+            if padded_name in portal_labels:
+                label_dict[label] = padded_name
+            elif "EEG {} {}-Ref".format(label[0:i],padded_num) in portal_labels:
+                label_dict[label] = "EEG {} {}-Ref".format(label[0:i],padded_num)
+            elif "EEG {}-Ref".format(label) in portal_labels:
+                label_dict[label] = "EEG {}-Ref".format(label)
+            else:
+                print("Warning: could not resolve electrode label {}.".format(label))
+                label_dict[label] = label
+    return label_dict
