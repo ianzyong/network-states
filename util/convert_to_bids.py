@@ -41,7 +41,7 @@ xlsx_path = Path(xlsx_str)
 
 # load xlsx
 df = pd.read_excel(xlsx_path)
-gender_dict = dict(zip(df["Patient"], [(item == "F")+1 for item in df['Gender']]))
+gender_dict = dict(zip(df["Patient"], df['Gender']))
 
 def generate_electrode_dict(portal_labels, labels):
     label_dict = {}
