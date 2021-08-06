@@ -37,6 +37,28 @@ mat_path = Path(mat_str)
 mat = loadmat(mat_path)
 localization = mat['patient_localization']
 
+def generate_electrode_dict(portal_labels, labels):
+    label_dict = {}
+    for label in labels:
+        if label in portal_labels:
+            label_dict[label] = label
+        else:
+            for i, c in enumerate(label):
+                if c.isdigit():
+                    break
+            padded_num = label[i:].zfill(2)
+            padded_name = label[0:i] + padded_num
+            if padded_name in portal_labels:
+                label_dict[label] = padded_name
+            elif "EEG {} {}-Ref".format(label[0:i],padded_num) in portal_labels:
+                label_dict[label] = "EEG {} {}-Ref".format(label[0:i],padded_num)
+            elif "EEG {}-Ref".format(label) in portal_labels:
+                label_dict[label] = "EEG {}-Ref".format(label)
+            else:
+                print("Warning: could not resolve electrode label {}.".format(label))
+                label_dict[label] = label
+    return label_dict
+
 # download ieeg data from ieeg.org
 if __name__ == '__main__':
     # input parameters
@@ -184,11 +206,12 @@ if __name__ == '__main__':
                 # apply label dictionary
                 true_label_arr = [label_dict[label] for label in label_arr]
 
-                zi = zip(true_label_arr,coord_arr)
+                zi = list(zip(true_label_arr,coord_arr))
 
                 # make montage
                 montage = mne.channels.make_dig_montage(ch_pos=dict(zi),coord_frame="mni_tal")
-                #print(f'Created {len(ch_names)} channel positions')
+                print(f'Created {len(dict(zi))} channel positions:')
+                print(dict(zi))
 
                 # convert to BIDS format and save
                 raw = mne.io.read_raw_edf(edf_file)
@@ -222,25 +245,3 @@ if __name__ == '__main__':
         total_end = time.time()
         print("{}/{} intervals(s) processed in {}.".format(process_count,len(patient_list),convertSeconds(int(total_end - total_start))))
         print("Done.")
-
-def generate_electrode_dict(portal_labels, labels):
-    label_dict = {}
-    for label in labels:
-        if label in portal_labels:
-            label_dict[label] = label
-        else:
-            for i, c in enumerate(label):
-                if c.isdigit():
-                    break
-            padded_num = label[i:].zfill(2)
-            padded_name = label[0:i] + padded_num
-            if padded_name in portal_labels:
-                label_dict[label] = padded_name
-            elif "EEG {} {}-Ref".format(label[0:i],padded_num) in portal_labels:
-                label_dict[label] = "EEG {} {}-Ref".format(label[0:i],padded_num)
-            elif "EEG {}-Ref".format(label) in portal_labels:
-                label_dict[label] = "EEG {}-Ref".format(label)
-            else:
-                print("Warning: could not resolve electrode label {}.".format(label))
-                label_dict[label] = label
-    return label_dict
