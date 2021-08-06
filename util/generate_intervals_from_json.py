@@ -19,7 +19,7 @@ f = open(json_path,)
 data = json.load(f)
 
 # load xlsx
-df = pd.read_excel("atlas_metadata_final.xlsx")
+df = pd.read_excel(xlsx_path)
 id_dict = dict(zip(df["Patient"], df['portal_ID']))
 acq_dict = dict(zip(df["Patient"], df['Implant']))
 ignore_dict = {}

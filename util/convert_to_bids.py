@@ -36,6 +36,12 @@ mat_str = input('Input path to localization .mat file: ')
 mat_path = Path(mat_str)
 mat = loadmat(mat_path)
 localization = mat['patient_localization']
+xlsx_str = input('Input path to .xlsx metadata file: ')
+xlsx_path = Path(xlsx_str)
+
+# load xlsx
+df = pd.read_excel(xlsx_path)
+gender_dict = dict(zip(df["Patient"], [(item == "F")+1 for item in df['Gender']]))
 
 def generate_electrode_dict(portal_labels, labels):
     label_dict = {}
@@ -184,7 +190,7 @@ if __name__ == '__main__':
                 
                 signal_headers = pyedflib.highlevel.make_signal_headers(channel_names, physical_min=-50000, physical_max=50000, transducer=acq)
                 #sample_rate = ds.sample_rate
-                header = pyedflib.highlevel.make_header(patientname=rid)
+                header = pyedflib.highlevel.make_header(patientname=rid, gender=gender_dict[rid])
 
                 # edf_file = os.path.join(patient_directory,"sub-{}_{}_{}_{}_EEG.edf".format(rid,iEEG_filename,start_time_usec,stop_time_usec))
                 edf_file = os.path.join(patient_directory,"{}.edf".format(interval_name))
