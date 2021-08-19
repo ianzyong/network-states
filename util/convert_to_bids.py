@@ -43,9 +43,8 @@ xlsx_path = Path(xlsx_str)
 df = pd.read_excel(xlsx_path)
 gender_dict = dict(zip(df["Patient"], df['Gender']))
 
-preictal_offset = int(input('Input preictal offset (s): '))
-postictal_offset = int(input('Input postictal offset (s): '))
-interictal_length = int(input('Input interictal interval length (s): '))
+preictal_offset = int(input('Input preictal offset (us): '))
+postictal_offset = int(input('Input postictal offset (us): '))
 
 def generate_electrode_dict(portal_labels, labels):
     label_dict = {}
@@ -239,9 +238,9 @@ if __name__ == '__main__':
 
                 # add annotations if ictal interval
                 if task == "ictal":
-                    my_annot = mne.Annotations(onset=[preictal_offset, postictal_offset], duration=[0, 0], description=['sz onset', 'sz offset'])
+                    my_annot = mne.Annotations(onset=[preictal_offset // 1000000, ((stop_time_usec - start_time_usec) - postictal_offset) // 1000000], duration=[0, 0], description=['sz onset', 'sz offset'])
                     raw.set_annotations(my_annot)
-                    
+
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):
                     os.makedirs(bids_root)
