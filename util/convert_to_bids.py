@@ -125,8 +125,8 @@ if __name__ == '__main__':
             acq = interval_name.split("_")[3].partition("-")[-1]
             task = interval_name.split("_")[2].partition("-")[-1]
             run = interval_name.split("_")[4].partition("-")[-1]
-            start_time_usec = patient[2]
-            stop_time_usec = patient[3]
+            start_time_usec = int(patient[2])
+            stop_time_usec = int(patient[3])
             removed_channels = patient[4].split(",")
             parent_directory = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())),'data')
             patient_directory = os.path.join(parent_directory,"sub-{}".format(rid))
@@ -235,11 +235,12 @@ if __name__ == '__main__':
 
                 # set montage
                 raw.set_montage(montage, on_missing='warn')
-
+                
                 # add annotations if ictal interval
                 if task == "ictal":
-                    my_annot = mne.Annotations(onset=[preictal_offset // 1000000, ((stop_time_usec - start_time_usec) - postictal_offset) // 1000000], duration=[0, 0], description=['sz onset', 'sz offset'])
+                    my_annot = mne.Annotations(onset=[preictal_offset // 1000000, raw.times[-1] - (postictal_offset // 1000000)], duration=[0, 0], description=['sz onset', 'sz offset'])
                     raw.set_annotations(my_annot)
+                    print(raw.annotations)
 
                 # create necessary directories if they do not exist
                 if not os.path.exists(bids_root):
