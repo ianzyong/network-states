@@ -202,6 +202,9 @@ if __name__ == '__main__':
                 except AssertionError as err:
                     print(err)
                     print("Failed to write {}, skipping...".format(edf_file))
+                    with open("error_log.txt", 'a') as txt:
+                        txt.write("{}:\n".format(rid))
+                        txt.write("{}\n".format(err))
                     continue
                 
                 coord_arr = localization[localization['patient'] == rid]["coords"][0]
